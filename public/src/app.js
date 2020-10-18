@@ -71,10 +71,10 @@ function drawSpectrum() {
     const segmentWidth = canvasWidth / fftBuffer.length;
     let x = 0.0;
 
-    // iterate through buffer and draw line segments
+    // iterate through buffer and add line segments
     for (let i = 0; i < fftBuffer.length; i++) {
         const value = fftBuffer[i] / 256.0;
-        const y = value * canvasHeight;
+        const y = canvasHeight - value * canvasHeight;
 
         if (i === 0) {
             canvasCtx.moveTo(x, y);
@@ -85,7 +85,6 @@ function drawSpectrum() {
         x += segmentWidth;
     }
 
-    // close line and draw it with stroke()
-    canvasCtx.lineTo(canvasWidth, 0.5 * canvasHeight);
+    // draw the line
     canvasCtx.stroke();
 }
