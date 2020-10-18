@@ -4,6 +4,8 @@ const FFT_WINDOW_SIZE = 2048;
 
 let audioElement;
 let canvasCtx;
+let canvasWidth;
+let canvasHeight;
 
 let analyser;
 let fftBuffer;
@@ -17,14 +19,17 @@ function init() {
     });
 
     const canvas = document.getElementById("spectrum-canvas");
+    canvasWidth = canvas.width;
+    canvasHeight = canvas.height;
     canvasCtx = canvas.getContext("2d");
+    clearCanvas();
 
     const ctx = new AudioContext();
 
     analyser = ctx.createAnalyser();
     analyser.fftSize = FFT_WINDOW_SIZE;
     const bufferSize = analyser.frequencyBinCount;
-    fftBuffer = new Float32Array(bufferSize);
+    fftBuffer = new Uint8Array(bufferSize);
 
     const source = ctx.createMediaElementSource(audioElement);
     source.connect(analyser);
@@ -33,7 +38,7 @@ function init() {
     processIntervalInMs = (FFT_WINDOW_SIZE / ctx.sampleRate) * 1000;
 }
 
-function play() {
+function start() {
     audioElement.play();
     timer = setInterval(() => {
         process();
@@ -47,6 +52,40 @@ function stop() {
 }
 
 function process() {
-    analyser.getFloatFrequencyData(fftBuffer);
-    console.log(fftBuffer);
+    analyser.getByteFrequencyData(fftBuffer);
+    clearCanvas();
+    drawSpectrum();
+}
+
+function clearCanvas() {
+    canvasCtx.fillStyle = "gray";
+    canvasCtx.fillRect(0, 0, canvasWidth, canvasHeight);
+}
+
+function drawSpectrum() {
+    canvasCtx.lineWidth = 1;
+    canvasCtx.strokeStyle = "red";
+    canvasCtx.beginPath();
+
+    // TODO: fix case if buffer size is larger than canvas width, cannot draw less than one pixel
+    const segmentWidth = canvasWidth / fftBuffer.length;
+    let x = 0.0;
+
+    // iterate through buffer and draw line segments
+    for (let i = 0; i < fftBuffer.length; i++) {
+        const value = fftBuffer[i] / 256.0;
+        const y = value * canvasHeight;
+
+        if (i === 0) {
+            canvasCtx.moveTo(x, y);
+        } else {
+            canvasCtx.lineTo(x, y);
+        }
+
+        x += segmentWidth;
+    }
+
+    // close line and draw it with stroke()
+    canvasCtx.lineTo(canvasWidth, 0.5 * canvasHeight);
+    canvasCtx.stroke();
 }
