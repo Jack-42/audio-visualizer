@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Spectrum Visualizer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body onload="init()">
+    <audio id="test-audio" src="res/sawtooth-chirp-mono.mp3" controls></audio>
+    <div>
+        <input type="button" id="btn-start" value="Start" onclick="start()">
+        <input type="button" id="btn-stop" value="Stop" onclick="stop()">
+    </div>
+    <canvas id="spectrum-canvas" width="400" height="400"></canvas>
+    <script src="src/app.js"></script>
+</body>
+</html>
