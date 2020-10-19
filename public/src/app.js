@@ -1,58 +1,71 @@
 const AudioContext = window.AudioContext || window.webkitAudioContext; // for legacy browsers
 
-const FFT_WINDOW_SIZE = 2048;
+const FFT_WINDOW_SIZE = 512;
 
-let audioElement;
+let audioCtx;
+let analyzer;
+let fftBuffer;
+let updateIntervalInMs;
+let timer;
+
+let audioBuffer;
+let audioSource;
+
 let canvasCtx;
 let canvasWidth;
 let canvasHeight;
 
-let analyser;
-let fftBuffer;
-let processIntervalInMs;
-let timer;
-
 function init() {
-    audioElement = document.getElementById("test-audio");
-    audioElement.addEventListener("ended", () => {
-        clearInterval(timer);
-    });
+    audioCtx = new AudioContext();
+
+    analyzer = audioCtx.createAnalyser();
+    analyzer.fftSize = FFT_WINDOW_SIZE;
+    const bufferSize = analyzer.frequencyBinCount;
+    fftBuffer = new Uint8Array(bufferSize);
+    analyzer.connect(audioCtx.destination);
+    updateIntervalInMs = (FFT_WINDOW_SIZE / audioCtx.sampleRate) * 1000;
 
     const canvas = document.getElementById("spectrum-canvas");
     canvasWidth = canvas.width;
     canvasHeight = canvas.height;
     canvasCtx = canvas.getContext("2d");
     clearCanvas();
+}
 
-    const ctx = new AudioContext();
-
-    analyser = ctx.createAnalyser();
-    analyser.fftSize = FFT_WINDOW_SIZE;
-    const bufferSize = analyser.frequencyBinCount;
-    fftBuffer = new Uint8Array(bufferSize);
-
-    const source = ctx.createMediaElementSource(audioElement);
-    source.connect(analyser);
-    analyser.connect(ctx.destination);
-
-    processIntervalInMs = (FFT_WINDOW_SIZE / ctx.sampleRate) * 1000;
+function loadFile(file) {
+    const reader = new FileReader();
+    reader.onload = async () => {
+        const data = reader.result;
+        audioBuffer = await audioCtx.decodeAudioData(data);
+    };
+    reader.readAsArrayBuffer(file);
 }
 
 function start() {
-    audioElement.play();
+    // for whatever reason, cannot reuse a source node, need to re-create it for each start
+    if (audioSource) {
+        audioSource.disconnect();
+    }
+    audioSource = audioCtx.createBufferSource();
+    audioSource.buffer = audioBuffer;
+    audioSource.connect(analyzer);
+
     timer = setInterval(() => {
-        process();
-    }, processIntervalInMs);
+        update();
+    }, updateIntervalInMs);
+
+    audioSource.start();
 }
 
 function stop() {
-    audioElement.pause();
-    audioElement.currentTime = 0;
+    if (audioSource) {
+        audioSource.stop();
+    }
     clearInterval(timer);
 }
 
-function process() {
-    analyser.getByteFrequencyData(fftBuffer);
+function update() {
+    analyzer.getByteFrequencyData(fftBuffer);
     clearCanvas();
     drawSpectrum();
 }
@@ -67,7 +80,6 @@ function drawSpectrum() {
     canvasCtx.strokeStyle = "red";
     canvasCtx.beginPath();
 
-    // TODO: fix case if buffer size is larger than canvas width, cannot draw less than one pixel
     const segmentWidth = canvasWidth / fftBuffer.length;
     let x = 0.0;
 
