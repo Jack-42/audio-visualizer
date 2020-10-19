@@ -1,6 +1,6 @@
 const AudioContext = window.AudioContext || window.webkitAudioContext; // for legacy browsers
 
-const FFT_WINDOW_SIZE = 2048;
+const FFT_WINDOW_SIZE = 512;
 
 let audioCtx;
 let analyzer;
