@@ -2,57 +2,70 @@ const AudioContext = window.AudioContext || window.webkitAudioContext; // for le
 
 const FFT_WINDOW_SIZE = 2048;
 
-let audioElement;
+let audioCtx;
+let analyzer;
+let fftBuffer;
+
 let canvasCtx;
 let canvasWidth;
 let canvasHeight;
 
-let analyser;
-let fftBuffer;
-let processIntervalInMs;
-let timer;
-
 function init() {
-    audioElement = document.getElementById("test-audio");
-    audioElement.addEventListener("ended", () => {
-        clearInterval(timer);
-    });
+    audioCtx = new AudioContext();
+    analyzer = audioCtx.createAnalyser();
+    analyzer.fftSize = FFT_WINDOW_SIZE;
+    const bufferSize = analyzer.frequencyBinCount;
+    fftBuffer = new Uint8Array(bufferSize);
+
+    // TODO: create from file const source = ctx.createMediaElementSource(audioElement);
+    /*
+    source.connect(analyser);
+    analyser.connect(ctx.destination);
+     */
 
     const canvas = document.getElementById("spectrum-canvas");
     canvasWidth = canvas.width;
     canvasHeight = canvas.height;
     canvasCtx = canvas.getContext("2d");
     clearCanvas();
+}
 
-    const ctx = new AudioContext();
+function load() {
+    const files = document.getElementById("audio-file").files;
+    if (files.length === 0) {
+        alert("No file selected");
+        return;
+    }
+    const reader = new FileReader();
+    reader.onload = async () => {
+        const data = reader.result;
+        const buffer = await audioCtx.decodeAudioData(data);
+        console.log(buffer);
+        const source = audioCtx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(analyzer);
+        analyzer.connect(audioCtx.destination);
+    };
+    reader.readAsArrayBuffer(files[0]);
+}
 
-    analyser = ctx.createAnalyser();
-    analyser.fftSize = FFT_WINDOW_SIZE;
-    const bufferSize = analyser.frequencyBinCount;
-    fftBuffer = new Uint8Array(bufferSize);
-
-    const source = ctx.createMediaElementSource(audioElement);
-    source.connect(analyser);
-    analyser.connect(ctx.destination);
-
-    processIntervalInMs = (FFT_WINDOW_SIZE / ctx.sampleRate) * 1000;
+async function loadFile(ctx, path) {
+    const response = await fetch(path);
+    const arrayBuffer = await response.arrayBuffer();
+    const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+    return audioBuffer;
 }
 
 function start() {
-    audioElement.play();
-    timer = setInterval(() => {
-        process();
-    }, processIntervalInMs);
+    // TODO: play audio
 }
 
 function stop() {
-    audioElement.pause();
-    audioElement.currentTime = 0;
-    clearInterval(timer);
+    // TODO: stop audio
 }
 
 function process() {
-    analyser.getByteFrequencyData(fftBuffer);
+    analyzer.getByteFrequencyData(fftBuffer);
     clearCanvas();
     drawSpectrum();
 }
