@@ -6,22 +6,23 @@ let audioCtx;
 let analyzer;
 let fftBuffer;
 
+let audioBuffer;
+let audioSource;
+
 let canvasCtx;
 let canvasWidth;
 let canvasHeight;
 
 function init() {
     audioCtx = new AudioContext();
+
     analyzer = audioCtx.createAnalyser();
     analyzer.fftSize = FFT_WINDOW_SIZE;
     const bufferSize = analyzer.frequencyBinCount;
     fftBuffer = new Uint8Array(bufferSize);
 
-    // TODO: create from file const source = ctx.createMediaElementSource(audioElement);
-    /*
-    source.connect(analyser);
-    analyser.connect(ctx.destination);
-     */
+    // TODO: create empty source buffer?
+    analyzer.connect(audioCtx.destination);
 
     const canvas = document.getElementById("spectrum-canvas");
     canvasWidth = canvas.width;
@@ -39,29 +40,27 @@ function load() {
     const reader = new FileReader();
     reader.onload = async () => {
         const data = reader.result;
-        const buffer = await audioCtx.decodeAudioData(data);
-        console.log(buffer);
-        const source = audioCtx.createBufferSource();
-        source.buffer = buffer;
-        source.connect(analyzer);
-        analyzer.connect(audioCtx.destination);
+        audioBuffer = await audioCtx.decodeAudioData(data);
+        console.log(audioBuffer);
     };
     reader.readAsArrayBuffer(files[0]);
 }
 
-async function loadFile(ctx, path) {
-    const response = await fetch(path);
-    const arrayBuffer = await response.arrayBuffer();
-    const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
-    return audioBuffer;
-}
-
 function start() {
-    // TODO: play audio
+    // for whatever reason, cannot reuse a source node, need to re-create it for each start
+    if (audioSource) {
+        audioSource.disconnect();
+    }
+    audioSource = audioCtx.createBufferSource();
+    audioSource.buffer = audioBuffer;
+    audioSource.connect(analyzer);
+    audioSource.start();
 }
 
 function stop() {
-    // TODO: stop audio
+    if (audioSource) {
+        audioSource.stop();
+    }
 }
 
 function process() {
