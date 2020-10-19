@@ -67,7 +67,6 @@ function drawSpectrum() {
     canvasCtx.strokeStyle = "red";
     canvasCtx.beginPath();
 
-    // TODO: fix case if buffer size is larger than canvas width, cannot draw less than one pixel
     const segmentWidth = canvasWidth / fftBuffer.length;
     let x = 0.0;
 

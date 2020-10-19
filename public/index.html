@@ -6,7 +6,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 <body onload="init()">
-    <audio id="test-audio" src="res/sawtooth-chirp-mono.mp3" controls></audio>
+    <div>
+        <label for="audio-file">Import audio file:</label>
+        <input type="file" id="audio-file" accept=".wav,.mp3,.ogg.,.au">
+    </div>
     <div>
         <input type="button" id="btn-start" value="Start" onclick="start()">
         <input type="button" id="btn-stop" value="Stop" onclick="stop()">
