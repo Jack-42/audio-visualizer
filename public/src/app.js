@@ -24,7 +24,6 @@ function init() {
     fftBuffer = new Uint8Array(bufferSize);
     analyzer.connect(audioCtx.destination);
     updateIntervalInMs = (FFT_WINDOW_SIZE / audioCtx.sampleRate) * 1000;
-    console.log(updateIntervalInMs);
 
     const canvas = document.getElementById("spectrum-canvas");
     canvasWidth = canvas.width;
@@ -33,19 +32,13 @@ function init() {
     clearCanvas();
 }
 
-function load() {
-    const files = document.getElementById("audio-file").files;
-    if (files.length === 0) {
-        alert("No file selected");
-        return;
-    }
+function loadFile(file) {
     const reader = new FileReader();
     reader.onload = async () => {
         const data = reader.result;
         audioBuffer = await audioCtx.decodeAudioData(data);
-        console.log(audioBuffer);
     };
-    reader.readAsArrayBuffer(files[0]);
+    reader.readAsArrayBuffer(file);
 }
 
 function start() {

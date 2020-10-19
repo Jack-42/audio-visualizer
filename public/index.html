@@ -8,10 +8,9 @@
 <body onload="init()">
     <div>
         <label for="audio-file">Import audio file:</label>
-        <input type="file" id="audio-file" accept=".wav,.mp3,.ogg.,.au">
+        <input type="file" id="audio-file" accept=".wav,.mp3,.ogg.,.au" onchange="loadFile(this.files[0])">
     </div>
     <div>
-        <input type="button" value="Load" onclick="load()">
         <input type="button" value="Start" onclick="start()">
         <input type="button" value="Stop" onclick="stop()">
     </div>
