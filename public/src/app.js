@@ -5,6 +5,8 @@ const FFT_WINDOW_SIZE = 2048;
 let audioCtx;
 let analyzer;
 let fftBuffer;
+let updateIntervalInMs;
+let timer;
 
 let audioBuffer;
 let audioSource;
@@ -20,9 +22,9 @@ function init() {
     analyzer.fftSize = FFT_WINDOW_SIZE;
     const bufferSize = analyzer.frequencyBinCount;
     fftBuffer = new Uint8Array(bufferSize);
-
-    // TODO: create empty source buffer?
     analyzer.connect(audioCtx.destination);
+    updateIntervalInMs = (FFT_WINDOW_SIZE / audioCtx.sampleRate) * 1000;
+    console.log(updateIntervalInMs);
 
     const canvas = document.getElementById("spectrum-canvas");
     canvasWidth = canvas.width;
@@ -54,6 +56,11 @@ function start() {
     audioSource = audioCtx.createBufferSource();
     audioSource.buffer = audioBuffer;
     audioSource.connect(analyzer);
+
+    timer = setInterval(() => {
+        update();
+    }, updateIntervalInMs);
+
     audioSource.start();
 }
 
@@ -61,9 +68,10 @@ function stop() {
     if (audioSource) {
         audioSource.stop();
     }
+    clearInterval(timer);
 }
 
-function process() {
+function update() {
     analyzer.getByteFrequencyData(fftBuffer);
     clearCanvas();
     drawSpectrum();
