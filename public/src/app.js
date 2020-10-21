@@ -68,12 +68,14 @@ function stop() {
         audioSource.stop();
     }
     clearInterval(timer);
-    document.getElementById("time").textContent = "00:00";
+    document.getElementById("time").textContent = "";
 }
 
 function update() {
+    if (!audioBuffer) {
+        return;
+    }
     updateTimeLabel();
-
     analyzer.getByteFrequencyData(fftBuffer);
     clearCanvas();
     drawSpectrum();
@@ -81,10 +83,16 @@ function update() {
 
 function updateTimeLabel() {
     const timeInSeconds = audioCtx.currentTime - startTime;
+    const timeString = getTimeString(timeInSeconds);
+    const durationString = getTimeString(audioBuffer.duration);
+    const text = timeString + " / " + durationString;
+    document.getElementById("time").textContent = text ;
+}
+
+function getTimeString(timeInSeconds) {
     const date = new Date(0);
     date.setSeconds(timeInSeconds);
-    const timeString = date.toISOString().substr(14, 5);
-    document.getElementById("time").textContent = timeString;
+    return date.toISOString().substr(14, 5);
 }
 
 function clearCanvas() {
