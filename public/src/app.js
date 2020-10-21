@@ -1,6 +1,6 @@
 const AudioContext = window.AudioContext || window.webkitAudioContext; // for legacy browsers
 
-const FFT_WINDOW_SIZE = 512;
+const WINDOW_SIZE = 512;
 
 let audioCtx;
 let analyzer;
@@ -11,6 +11,8 @@ let timer;
 let audioBuffer;
 let audioSource;
 
+let startTime;
+
 let canvasCtx;
 let canvasWidth;
 let canvasHeight;
@@ -19,11 +21,11 @@ function init() {
     audioCtx = new AudioContext();
 
     analyzer = audioCtx.createAnalyser();
-    analyzer.fftSize = FFT_WINDOW_SIZE;
+    analyzer.fftSize = WINDOW_SIZE;
     const bufferSize = analyzer.frequencyBinCount;
     fftBuffer = new Uint8Array(bufferSize);
     analyzer.connect(audioCtx.destination);
-    updateIntervalInMs = (FFT_WINDOW_SIZE / audioCtx.sampleRate) * 1000;
+    updateIntervalInMs = (WINDOW_SIZE / audioCtx.sampleRate) * 1000;
 
     const canvas = document.getElementById("spectrum-canvas");
     canvasWidth = canvas.width;
@@ -57,6 +59,7 @@ function start() {
         update();
     }, updateIntervalInMs);
 
+    startTime = audioCtx.currentTime;
     audioSource.start();
 }
 
@@ -68,6 +71,10 @@ function stop() {
 }
 
 function update() {
+    const time = audioCtx.currentTime - startTime;
+    const timeLabel = document.getElementById("time");
+    timeLabel.textContent = time.toFixed(3) + " s";
+
     analyzer.getByteFrequencyData(fftBuffer);
     clearCanvas();
     drawSpectrum();
