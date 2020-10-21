@@ -7,8 +7,12 @@
 </head>
 <body onload="init()">
     <div>
-        <label for="audio-file">Import audio file:</label>
+        <label for="audio-file">Select Audio File:</label>
         <input type="file" id="audio-file" accept=".wav,.mp3,.ogg.,.au" onchange="loadFile(this.files[0])">
+    </div>
+    <div>
+        <label>Status:</label>
+        <label id="status">No file selected</label>
     </div>
     <div>
         <input type="button" value="Start" onclick="start()">
