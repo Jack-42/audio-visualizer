@@ -68,16 +68,23 @@ function stop() {
         audioSource.stop();
     }
     clearInterval(timer);
+    document.getElementById("time").textContent = "00:00";
 }
 
 function update() {
-    const time = audioCtx.currentTime - startTime;
-    const timeLabel = document.getElementById("time");
-    timeLabel.textContent = time.toFixed(3) + " s";
+    updateTimeLabel();
 
     analyzer.getByteFrequencyData(fftBuffer);
     clearCanvas();
     drawSpectrum();
+}
+
+function updateTimeLabel() {
+    const timeInSeconds = audioCtx.currentTime - startTime;
+    const date = new Date(0);
+    date.setSeconds(timeInSeconds);
+    const timeString = date.toISOString().substr(14, 5);
+    document.getElementById("time").textContent = timeString;
 }
 
 function clearCanvas() {
