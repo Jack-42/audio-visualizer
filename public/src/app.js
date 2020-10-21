@@ -33,10 +33,13 @@ function init() {
 }
 
 function loadFile(file) {
+    const statusLabel = document.getElementById("status");
+    statusLabel.textContent = "Loading...";
     const reader = new FileReader();
     reader.onload = async () => {
         const data = reader.result;
         audioBuffer = await audioCtx.decodeAudioData(data);
+        statusLabel.textContent = "Ready";
     };
     reader.readAsArrayBuffer(file);
 }
