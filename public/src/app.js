@@ -46,22 +46,31 @@ function loadFile(file) {
     reader.readAsArrayBuffer(file);
 }
 
-function start() {
-    // for whatever reason, cannot reuse a source node, need to re-create it for each start
-    if (audioSource) {
-        audioSource.disconnect();
+async function playOrPause() {
+    if (!audioSource) {
+        // source has not been started yet or has just been stopped
+        // needs to be re-started
+        start();
+    } else {
+        // source is not stopped, i.e. it is either playing or paused
+        await pauseOrResume();
     }
+}
+
+function start() {
     audioSource = audioCtx.createBufferSource();
     audioSource.buffer = audioBuffer;
     audioSource.connect(analyzer);
     audioSource.onended = (event) => {
-        // this is triggered if playback has finished, and if stop() is called
+        // this is triggered if playback has finished or if stop() is called
         onStop();
     }
 
     timer = setInterval(() => {
         update();
     }, updateIntervalInMs);
+
+    document.getElementById("btn-play-pause").value = "Pause";
 
     startTime = audioCtx.currentTime;
     audioSource.start();
@@ -70,24 +79,36 @@ function start() {
 async function pauseOrResume() {
     if (audioCtx.state === "running") {
         await audioCtx.suspend();
-        const button = document.getElementById("btn-pause-resume");
-        button.value = "Resume";
+        document.getElementById("btn-play-pause").value = "Play";
     } else if (audioCtx.state === "suspended") {
         await audioCtx.resume();
-        const button = document.getElementById("btn-pause-resume");
-        button.value = "Pause";
+        document.getElementById("btn-play-pause").value = "Pause";
     }
 }
 
-function stop() {
+async function stop() {
+    if (!audioSource) {
+        return;
+    }
+    if (audioCtx.state === "suspended") {
+        // if ctx is suspended (paused), first need to resume
+        // might seem paradox, but is correct because not the source is suspended, but the ctx
+        await audioCtx.resume();
+    }
     if (audioSource) {
         audioSource.stop();
     }
 }
 
 function onStop() {
+    audioSource.disconnect();
+    audioSource = null;
+
     clearCanvas();
     clearInterval(timer);
+
+    document.getElementById("btn-play-pause").value = "Play";
+
     const timeString = "00:00";
     const durationString = getTimeString(audioBuffer.duration);
     const text = timeString + " / " + durationString;
