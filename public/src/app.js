@@ -184,12 +184,22 @@ function createChart() {
                     scaleLabel: {
                         display: true,
                         labelString: "Frequency Bin"
+                    },
+                    ticks: {
+                        min: 0,
+                        max: fftBuffer.length
                     }
                 }],
                 yAxes: [{
+                    type: "linear",
+                    position: "left",
                     scaleLabel: {
                         display: true,
                         labelString: "Power"
+                    },
+                    ticks: {
+                        min: 0,
+                        max: 255
                     }
                 }]
             }
