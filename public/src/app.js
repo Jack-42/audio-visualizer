@@ -20,6 +20,8 @@ let canvasCtx;
 let canvasWidth;
 let canvasHeight;
 
+let chart;
+
 function init() {
     audioCtx = new AudioContext();
 
@@ -34,7 +36,8 @@ function init() {
     canvasWidth = canvas.width;
     canvasHeight = canvas.height;
     canvasCtx = canvas.getContext("2d");
-    clearCanvas();
+
+    createChart();
 }
 
 function loadFile(file) {
@@ -115,7 +118,6 @@ function onStop() {
     audioSource.disconnect();
     audioSource = null;
 
-    clearCanvas();
     clearInterval(timer);
 
     document.getElementById("btn-play-pause").value = "Play";
@@ -146,8 +148,7 @@ function update() {
     }
     updateTime();
     analyzer.getByteFrequencyData(fftBuffer);
-    clearCanvas();
-    drawSpectrum();
+    updateChart();
 }
 
 function updateTime() {
@@ -163,33 +164,71 @@ function getTimeString(time) {
     return date.toISOString().substr(14, 5);
 }
 
-function clearCanvas() {
-    canvasCtx.fillStyle = "gray";
-    canvasCtx.fillRect(0, 0, canvasWidth, canvasHeight);
+function createChart() {
+    const shouldResize = canvasWidth + 50 > window.innerWidth;
+    chart = new Chart(canvasCtx, {
+        type: 'line',
+        options: {
+            animation: {
+                duration: 0 // disable animation
+            },
+            legend: {
+                display: false // disable legend (database label)
+            },
+            responsive: shouldResize,
+            scales: {
+                xAxes: [{
+                    type: "linear",
+                    position: "bottom",
+                    scaleLabel: {
+                        display: true,
+                        labelString: "Frequency Bin"
+                    },
+                    ticks: {
+                        min: 0,
+                        max: fftBuffer.length
+                    }
+                }],
+                yAxes: [{
+                    type: "linear",
+                    position: "left",
+                    scaleLabel: {
+                        display: true,
+                        labelString: "Power"
+                    },
+                    ticks: {
+                        min: 0,
+                        max: 255
+                    }
+                }]
+            }
+        }
+    });
 }
 
-function drawSpectrum() {
-    canvasCtx.lineWidth = 1;
-    canvasCtx.strokeStyle = "red";
-    canvasCtx.beginPath();
+function updateChart() {
+    // have at most one point per pixel
+    // e.g. if 2048 values but 512 pixels, then 4 values per point, i.e. skipping 3 values each
+    const maxNumPoints = canvasWidth;
+    const numValuesPerPoint = Math.max(1, Math.round(fftBuffer.length / maxNumPoints));
 
-    const segmentWidth = canvasWidth / fftBuffer.length;
-    let x = 0.0;
-
-    // iterate through buffer and add line segments
-    for (let i = 0; i < fftBuffer.length; i++) {
-        const value = fftBuffer[i] / 256.0;
-        const y = canvasHeight - value * canvasHeight;
-
-        if (i === 0) {
-            canvasCtx.moveTo(x, y);
-        } else {
-            canvasCtx.lineTo(x, y);
-        }
-
-        x += segmentWidth;
+    const data = [];
+    for (let i = 0; i < fftBuffer.length; i += numValuesPerPoint) {
+        const point = {
+            x: i,
+            y: fftBuffer[i]
+        };
+        data.push(point);
     }
 
-    // draw the line
-    canvasCtx.stroke();
+    chart.data.datasets = [{
+        data: data,
+        lineTension: 0, // disable interpolation
+        pointRadius: 0, // disable circles for points
+        borderWidth: 1,
+        backgroundColor: "rgba(255,0,0,0.5)",
+        borderColor: "rgba(255,0,0,1.0)"
+    }];
+
+    chart.update();
 }
