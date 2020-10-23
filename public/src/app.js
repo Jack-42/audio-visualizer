@@ -20,6 +20,8 @@ let canvasCtx;
 let canvasWidth;
 let canvasHeight;
 
+let chart;
+
 function init() {
     audioCtx = new AudioContext();
 
@@ -34,7 +36,10 @@ function init() {
     canvasWidth = canvas.width;
     canvasHeight = canvas.height;
     canvasCtx = canvas.getContext("2d");
-    clearCanvas();
+
+    chart = createChart();
+    // TODO: Remove
+    // clearCanvas();
 }
 
 function loadFile(file) {
@@ -166,6 +171,39 @@ function getTimeString(time) {
 function clearCanvas() {
     canvasCtx.fillStyle = "gray";
     canvasCtx.fillRect(0, 0, canvasWidth, canvasHeight);
+}
+
+function createChart() {
+    const shouldResize = canvasWidth + 50 > window.innerWidth;
+    chart = new Chart(canvasCtx, {
+        type: 'line',
+        options: {
+            animation: {
+                duration: 0 // disable animation
+            },
+            legend: {
+                display: false // disable legend (database label)
+            },
+            responsive: shouldResize,
+            // use scale axis instead of category axis with labels
+            scales: {
+                xAxes: [{
+                    type: "linear",
+                    position: "bottom",
+                    scaleLabel: {
+                        display: true,
+                        labelString: "Frequency Bin"
+                    }
+                }],
+                yAxes: [{
+                    scaleLabel: {
+                        display: true,
+                        labelString: "Power"
+                    }
+                }]
+            }
+        }
+    });
 }
 
 function drawSpectrum() {
