@@ -46,7 +46,7 @@ function loadFile(file) {
     reader.readAsArrayBuffer(file);
 }
 
-async function start() {
+function start() {
     // for whatever reason, cannot reuse a source node, need to re-create it for each start
     if (audioSource) {
         audioSource.disconnect();
@@ -80,7 +80,10 @@ function stop() {
         audioSource.stop();
     }
     clearInterval(timer);
-    document.getElementById("time").textContent = "";
+    const timeString = "00:00";
+    const durationString = getTimeString(audioBuffer.duration);
+    const text = timeString + " / " + durationString;
+    document.getElementById("time").textContent = text;
 }
 
 function update() {
