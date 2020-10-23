@@ -1,4 +1,2 @@
-# spectrum-visualizer
-A simple web app to visualize the frequency spectrum of audio.
-
-It is implemented in JavaScript with the Web Audio API.
+# Audio Visualizer
+A simple web app for audio visualization implemented in JavaScript using the Web Audio API. 
