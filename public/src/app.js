@@ -11,6 +11,7 @@ let timer;
 let audioBuffer;
 let audioSource;
 
+let ready = false;
 let startTime;
 
 let canvasCtx;
@@ -36,17 +37,22 @@ function init() {
 
 function loadFile(file) {
     const statusLabel = document.getElementById("status");
+    ready = false;
     statusLabel.textContent = "Loading...";
     const reader = new FileReader();
     reader.onload = async () => {
         const data = reader.result;
         audioBuffer = await audioCtx.decodeAudioData(data);
+        ready = true;
         statusLabel.textContent = "Ready";
     };
     reader.readAsArrayBuffer(file);
 }
 
 async function playOrPause() {
+    if (!ready) {
+        return;
+    }
     if (!audioSource) {
         // source has not been started yet or has just been stopped
         // needs to be re-started
