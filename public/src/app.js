@@ -13,6 +13,8 @@ let audioSource;
 
 let ready = false;
 let startTime;
+let playerTime = 0;
+let hasPlayerTimeChanged = false;
 
 let canvasCtx;
 let canvasWidth;
@@ -82,7 +84,7 @@ function start() {
     document.getElementById("duration").textContent = getTimeString(audioBuffer.duration);
 
     startTime = audioCtx.currentTime;
-    audioSource.start();
+    audioSource.start(0, playerTime);
 }
 
 async function pauseOrResume() {
@@ -120,6 +122,22 @@ function onStop() {
     document.getElementById("time").textContent = "00:00";
     document.getElementById("time-slider").value = 0;
     document.getElementById("time-slider").max = 0;
+
+    if (hasPlayerTimeChanged) {
+        // re-start because track was stopped just for changing player time
+        // very hacky, did not find any better solution
+        hasPlayerTimeChanged = false;
+        start();
+    } else {
+        // if it has stopped usually, reset the player time
+        playerTime = 0;
+    }
+}
+
+async function changePlayerTime(timeString) {
+    playerTime = Number.parseInt(timeString);
+    hasPlayerTimeChanged = true;
+    await stop();
 }
 
 function update() {
@@ -133,15 +151,15 @@ function update() {
 }
 
 function updateTime() {
-    const timeInSeconds = audioCtx.currentTime - startTime;
-    document.getElementById("time-slider").value = Math.floor(timeInSeconds);
-    document.getElementById("time").textContent = getTimeString(timeInSeconds);
+    const time = audioCtx.currentTime - startTime + playerTime;
+    document.getElementById("time-slider").value = Math.floor(time);
+    document.getElementById("time").textContent = getTimeString(time);
     document.getElementById("duration").textContent = getTimeString(audioBuffer.duration) ;
 }
 
-function getTimeString(timeInSeconds) {
+function getTimeString(time) {
     const date = new Date(0);
-    date.setSeconds(timeInSeconds);
+    date.setSeconds(time);
     return date.toISOString().substr(14, 5);
 }
 

@@ -18,7 +18,8 @@
         <input type="button" id="btn-play-pause" value="Play" onclick="playOrPause()">
         <input type="button" value="Stop" onclick="stop()">
         <label id="time">00:00</label>
-        <input type="range" id="time-slider" min="0" max="0" step="1" value="0">
+        <input type="range" id="time-slider" min="0" max="0" step="1" value="0"
+               onchange="changePlayerTime(this.value);">
         <label id="duration">--:--</label>
     </div>
     <canvas id="spectrum-canvas" width="400" height="400"></canvas>
