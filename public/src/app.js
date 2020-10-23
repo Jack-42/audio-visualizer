@@ -77,7 +77,9 @@ function start() {
     }, updateIntervalInMs);
 
     document.getElementById("btn-play-pause").value = "Pause";
-    initTimeLabels();
+    document.getElementById("time-slider").max = Math.floor(audioBuffer.duration);
+    document.getElementById("time").textContent = "00:00";
+    document.getElementById("duration").textContent = getTimeString(audioBuffer.duration);
 
     startTime = audioCtx.currentTime;
     audioSource.start();
@@ -115,27 +117,24 @@ function onStop() {
     clearInterval(timer);
 
     document.getElementById("btn-play-pause").value = "Play";
-
-    initTimeLabels();
-}
-
-function initTimeLabels() {
     document.getElementById("time").textContent = "00:00";
-    document.getElementById("duration").textContent = getTimeString(audioBuffer.duration);
+    document.getElementById("time-slider").value = 0;
+    document.getElementById("time-slider").max = 0;
 }
 
 function update() {
     if (!audioBuffer) {
         return;
     }
-    updateTimeLabels();
+    updateTime();
     analyzer.getByteFrequencyData(fftBuffer);
     clearCanvas();
     drawSpectrum();
 }
 
-function updateTimeLabels() {
+function updateTime() {
     const timeInSeconds = audioCtx.currentTime - startTime;
+    document.getElementById("time-slider").value = Math.floor(timeInSeconds);
     document.getElementById("time").textContent = getTimeString(timeInSeconds);
     document.getElementById("duration").textContent = getTimeString(audioBuffer.duration) ;
 }
