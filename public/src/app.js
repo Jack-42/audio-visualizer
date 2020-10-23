@@ -54,6 +54,10 @@ function start() {
     audioSource = audioCtx.createBufferSource();
     audioSource.buffer = audioBuffer;
     audioSource.connect(analyzer);
+    audioSource.onended = (event) => {
+        // this is triggered if playback has finished, and if stop() is called
+        onStop();
+    }
 
     timer = setInterval(() => {
         update();
@@ -79,6 +83,10 @@ function stop() {
     if (audioSource) {
         audioSource.stop();
     }
+}
+
+function onStop() {
+    clearCanvas();
     clearInterval(timer);
     const timeString = "00:00";
     const durationString = getTimeString(audioBuffer.duration);
