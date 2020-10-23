@@ -176,7 +176,6 @@ function createChart() {
                 display: false // disable legend (database label)
             },
             responsive: shouldResize,
-            // use scale axis instead of category axis with labels
             scales: {
                 xAxes: [{
                     type: "linear",
@@ -226,6 +225,7 @@ function updateChart() {
         data: data,
         lineTension: 0, // disable interpolation
         pointRadius: 0, // disable circles for points
+        borderWidth: 1
     }];
 
     chart.update();
