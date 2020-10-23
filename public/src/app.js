@@ -225,7 +225,9 @@ function updateChart() {
         data: data,
         lineTension: 0, // disable interpolation
         pointRadius: 0, // disable circles for points
-        borderWidth: 1
+        borderWidth: 1,
+        backgroundColor: "rgba(255,0,0,0.5)",
+        borderColor: "rgba(255,0,0,1.0)"
     }];
 
     chart.update();
