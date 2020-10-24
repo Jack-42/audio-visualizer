@@ -20,6 +20,7 @@ let audioSource;
 
 let ready = false;
 let startTime;
+let currTime;
 let playerTime = 0;
 let hasPlayerTimeChanged = false;
 
@@ -164,9 +165,9 @@ function update() {
 }
 
 function updateTime() {
-    const time = audioCtx.currentTime - startTime + playerTime;
-    document.getElementById("time-slider").value = Math.floor(time);
-    document.getElementById("time").textContent = getTimeString(time);
+    currTime = audioCtx.currentTime - startTime + playerTime;
+    document.getElementById("time-slider").value = Math.floor(currTime);
+    document.getElementById("time").textContent = getTimeString(currTime);
     document.getElementById("duration").textContent = getTimeString(audioBuffer.duration) ;
 }
 
@@ -272,7 +273,7 @@ function updateTimeDomainChart() {
 
     const data = [];
     for (let i = 0; i < timeDomainData.length; i += numValuesPerPoint) {
-        const time = i / audioCtx.sampleRate;
+        const time = (i / audioCtx.sampleRate) + currTime; // offset by start time of the current window
         const amplitude = (timeDomainData[i] - 128) / 255.0;
         const point = {
             x: time,
@@ -289,6 +290,10 @@ function updateTimeDomainChart() {
         backgroundColor: "rgba(0,0,0,0)",
         borderColor: "rgba(63,63,63,1.0)"
     }];
+
+    // update range of time for current window
+    timeDomainChart.options.scales.xAxes[0].ticks.min = currTime;
+    timeDomainChart.options.scales.xAxes[0].ticks.max = currTime + windowSizeInSeconds;
 
     timeDomainChart.update();
 }
