@@ -1,6 +1,6 @@
 const AudioContext = window.AudioContext || window.webkitAudioContext; // for legacy browsers
 
-const WINDOW_SIZE = 512;
+const WINDOW_SIZE = 1024;
 const DECIBELS_RANGE = 90;
 
 const NUM_PIXELS_PER_POINT = 1;
@@ -8,9 +8,11 @@ const NUM_PIXELS_PER_POINT = 1;
 let audioCtx;
 let analyzer;
 
-let fftBuffer;
+let timeDomainData;
+let frequencyDomainData;
 let nyquistFrequency;
-let updateIntervalInMs;
+let windowSizeInSeconds;
+let windowSizeInMs;
 let timer;
 
 let audioBuffer;
@@ -18,14 +20,15 @@ let audioSource;
 
 let ready = false;
 let startTime;
+let currTime = 0;
 let playerTime = 0;
 let hasPlayerTimeChanged = false;
 
-let canvasCtx;
-let canvasWidth;
-let canvasHeight;
+let timeDomainCanvas;
+let frequencyDomainCanvas;
 
-let chart;
+let timeDomainChart;
+let frequencyDomainChart;
 
 function init() {
     audioCtx = new AudioContext();
@@ -36,16 +39,16 @@ function init() {
     analyzer.fftSize = WINDOW_SIZE;
     analyzer.connect(audioCtx.destination);
 
-    fftBuffer = new Uint8Array(analyzer.frequencyBinCount);
+    timeDomainData = new Uint8Array(WINDOW_SIZE);
+    frequencyDomainData = new Uint8Array(analyzer.frequencyBinCount);
     nyquistFrequency = audioCtx.sampleRate / 2;
-    updateIntervalInMs = (WINDOW_SIZE / audioCtx.sampleRate) * 1000;
+    windowSizeInSeconds = WINDOW_SIZE / audioCtx.sampleRate;
+    windowSizeInMs = windowSizeInSeconds * 1000;
 
-    const canvas = document.getElementById("spectrum-canvas");
-    canvasWidth = canvas.width;
-    canvasHeight = canvas.height;
-    canvasCtx = canvas.getContext("2d");
-
-    createChart();
+    timeDomainCanvas = document.getElementById("time-domain-canvas");
+    frequencyDomainCanvas = document.getElementById("frequency-domain-canvas");
+    createTimeDomainChart();
+    createFrequencyDomainChart();
 }
 
 function loadFile(file) {
@@ -87,7 +90,7 @@ function start() {
 
     timer = setInterval(() => {
         update();
-    }, updateIntervalInMs);
+    }, windowSizeInMs);
 
     document.getElementById("btn-play-pause").value = "Pause";
     document.getElementById("time-slider").max = Math.floor(audioBuffer.duration);
@@ -155,14 +158,16 @@ function update() {
         return;
     }
     updateTime();
-    analyzer.getByteFrequencyData(fftBuffer);
-    updateChart();
+    analyzer.getByteTimeDomainData(timeDomainData);
+    analyzer.getByteFrequencyData(frequencyDomainData);
+    updateTimeDomainChart();
+    updateFrequencyDomainChart();
 }
 
 function updateTime() {
-    const time = audioCtx.currentTime - startTime + playerTime;
-    document.getElementById("time-slider").value = Math.floor(time);
-    document.getElementById("time").textContent = getTimeString(time);
+    currTime = audioCtx.currentTime - startTime + playerTime;
+    document.getElementById("time-slider").value = Math.floor(currTime);
+    document.getElementById("time").textContent = getTimeString(currTime);
     document.getElementById("duration").textContent = getTimeString(audioBuffer.duration) ;
 }
 
@@ -172,9 +177,67 @@ function getTimeString(time) {
     return date.toISOString().substr(14, 5);
 }
 
-function createChart() {
-    const shouldResize = canvasWidth + 50 > window.innerWidth;
-    chart = new Chart(canvasCtx, {
+function createTimeDomainChart() {
+    const shouldResize = timeDomainCanvas.width + 50 > window.innerWidth;
+    const ctx = timeDomainCanvas.getContext("2d");
+
+    timeDomainChart = new Chart(ctx, {
+        type: 'line',
+        options: {
+            animation: {
+                duration: 0 // disable animation
+            },
+            legend: {
+                display: false // disable legend (database label)
+            },
+            responsive: shouldResize,
+            scales: {
+                xAxes: [{
+                    type: "linear",
+                    position: "bottom",
+                    scaleLabel: {
+                        display: true,
+                        labelString: "Time (s)"
+                    },
+                    ticks: {
+                        min: 0,
+                        max: windowSizeInSeconds,
+                        callback: function(value, index, values) {
+                            // transform value to string
+                            // only show min and max value because otherwise too much flickering, looks confusing
+                            if (index === 0) {
+                                return currTime.toFixed(3);
+                            } else if (index === values.length - 1) {
+                                const endTime = currTime + windowSizeInSeconds;
+                                return endTime.toFixed(3);
+                            } else {
+                                return "";
+                            }
+                        }
+                    }
+                }],
+                yAxes: [{
+                    type: "linear",
+                    position: "left",
+                    scaleLabel: {
+                        display: true,
+                        labelString: "Amplitude"
+                    },
+                    ticks: {
+                        min: -1.0,
+                        max: 1.0
+                    }
+                }]
+            }
+        }
+    });
+}
+
+function createFrequencyDomainChart() {
+    const shouldResize = frequencyDomainCanvas.width + 50 > window.innerWidth;
+    const ctx = frequencyDomainCanvas.getContext("2d");
+
+    frequencyDomainChart = new Chart(ctx, {
         type: 'line',
         options: {
             animation: {
@@ -219,14 +282,43 @@ function createChart() {
     });
 }
 
-function updateChart() {
-    const maxNumPoints = Math.round(canvasWidth / NUM_PIXELS_PER_POINT);
-    const numValuesPerPoint = Math.max(1, Math.round(fftBuffer.length / maxNumPoints));
+function updateTimeDomainChart() {
+    const numValuesPerPoint = getNumValuesPerPoint(timeDomainCanvas.width, timeDomainData.length);
 
     const data = [];
-    for (let bin = 0; bin < fftBuffer.length; bin += numValuesPerPoint) {
-        const frequency = (bin / fftBuffer.length) * nyquistFrequency;
-        const decibels = (fftBuffer[bin] - 255) / 255.0 * DECIBELS_RANGE;
+    for (let i = 0; i < timeDomainData.length; i += numValuesPerPoint) {
+        const time = (i / audioCtx.sampleRate) + currTime; // offset by start time of the current window
+        const amplitude = (timeDomainData[i] - 128) / 255.0;
+        const point = {
+            x: time,
+            y: amplitude
+        };
+        data.push(point);
+    }
+
+    timeDomainChart.data.datasets = [{
+        data: data,
+        lineTension: 0, // disable interpolation
+        pointRadius: 0, // disable circles for points
+        borderWidth: 1,
+        backgroundColor: "rgba(0,0,0,0)",
+        borderColor: "rgba(63,63,63,1.0)"
+    }];
+
+    // update range of time for current window
+    timeDomainChart.options.scales.xAxes[0].ticks.min = currTime;
+    timeDomainChart.options.scales.xAxes[0].ticks.max = currTime + windowSizeInSeconds;
+
+    timeDomainChart.update();
+}
+
+function updateFrequencyDomainChart() {
+    const numValuesPerPoint = getNumValuesPerPoint(frequencyDomainCanvas.width, frequencyDomainData.length);
+
+    const data = [];
+    for (let bin = 0; bin < frequencyDomainData.length; bin += numValuesPerPoint) {
+        const frequency = (bin / frequencyDomainData.length) * nyquistFrequency;
+        const decibels = (frequencyDomainData[bin] - 255) / 255.0 * DECIBELS_RANGE;
         const point = {
             x: frequency,
             y: decibels
@@ -234,7 +326,7 @@ function updateChart() {
         data.push(point);
     }
 
-    chart.data.datasets = [{
+    frequencyDomainChart.data.datasets = [{
         data: data,
         lineTension: 0, // disable interpolation
         pointRadius: 0, // disable circles for points
@@ -243,5 +335,10 @@ function updateChart() {
         borderColor: "rgba(255,0,0,1.0)"
     }];
 
-    chart.update();
+    frequencyDomainChart.update();
+}
+
+function getNumValuesPerPoint(canvasWidth, numValues) {
+    const maxNumPoints = Math.round(canvasWidth / NUM_PIXELS_PER_POINT);
+    return Math.max(1, Math.round(numValues / maxNumPoints));
 }
