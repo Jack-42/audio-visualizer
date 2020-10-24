@@ -21,9 +21,7 @@ let startTime;
 let playerTime = 0;
 let hasPlayerTimeChanged = false;
 
-let canvasCtx;
-let canvasWidth;
-let canvasHeight;
+let frequencyDomainCanvas;
 
 let chart;
 
@@ -40,12 +38,8 @@ function init() {
     nyquistFrequency = audioCtx.sampleRate / 2;
     updateIntervalInMs = (WINDOW_SIZE / audioCtx.sampleRate) * 1000;
 
-    const canvas = document.getElementById("spectrum-canvas");
-    canvasWidth = canvas.width;
-    canvasHeight = canvas.height;
-    canvasCtx = canvas.getContext("2d");
-
-    createChart();
+    frequencyDomainCanvas = document.getElementById("frequency-domain-canvas");
+    createFrequencyDomainChart();
 }
 
 function loadFile(file) {
@@ -156,7 +150,7 @@ function update() {
     }
     updateTime();
     analyzer.getByteFrequencyData(fftBuffer);
-    updateChart();
+    updateFrequencyDomainChart();
 }
 
 function updateTime() {
@@ -172,9 +166,10 @@ function getTimeString(time) {
     return date.toISOString().substr(14, 5);
 }
 
-function createChart() {
-    const shouldResize = canvasWidth + 50 > window.innerWidth;
-    chart = new Chart(canvasCtx, {
+function createFrequencyDomainChart() {
+    const shouldResize = frequencyDomainCanvas.width + 50 > window.innerWidth;
+    const ctx = frequencyDomainCanvas.getContext("2d");
+    chart = new Chart(ctx, {
         type: 'line',
         options: {
             animation: {
@@ -219,8 +214,8 @@ function createChart() {
     });
 }
 
-function updateChart() {
-    const maxNumPoints = Math.round(canvasWidth / NUM_PIXELS_PER_POINT);
+function updateFrequencyDomainChart() {
+    const maxNumPoints = Math.round(frequencyDomainCanvas.width / NUM_PIXELS_PER_POINT);
     const numValuesPerPoint = Math.max(1, Math.round(fftBuffer.length / maxNumPoints));
 
     const data = [];
