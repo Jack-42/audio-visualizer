@@ -1,6 +1,7 @@
 const AudioContext = window.AudioContext || window.webkitAudioContext; // for legacy browsers
 
 const WINDOW_SIZE = 512;
+const DECIBELS_RANGE = 90;
 
 let audioCtx;
 let analyzer;
@@ -26,6 +27,8 @@ function init() {
     audioCtx = new AudioContext();
 
     analyzer = audioCtx.createAnalyser();
+    analyzer.minDecibels = -DECIBELS_RANGE;
+    analyzer.maxDecibels = 0;
     analyzer.fftSize = WINDOW_SIZE;
     const bufferSize = analyzer.frequencyBinCount;
     fftBuffer = new Uint8Array(bufferSize);
