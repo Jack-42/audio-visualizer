@@ -1,10 +1,13 @@
 const AudioContext = window.AudioContext || window.webkitAudioContext; // for legacy browsers
 
 const WINDOW_SIZE = 512;
+const DECIBELS_RANGE = 90;
 
 let audioCtx;
 let analyzer;
+
 let fftBuffer;
+let nyquistFrequency;
 let updateIntervalInMs;
 let timer;
 
@@ -26,10 +29,13 @@ function init() {
     audioCtx = new AudioContext();
 
     analyzer = audioCtx.createAnalyser();
+    analyzer.minDecibels = -DECIBELS_RANGE;
+    analyzer.maxDecibels = 0;
     analyzer.fftSize = WINDOW_SIZE;
-    const bufferSize = analyzer.frequencyBinCount;
-    fftBuffer = new Uint8Array(bufferSize);
     analyzer.connect(audioCtx.destination);
+
+    fftBuffer = new Uint8Array(analyzer.frequencyBinCount);
+    nyquistFrequency = audioCtx.sampleRate / 2;
     updateIntervalInMs = (WINDOW_SIZE / audioCtx.sampleRate) * 1000;
 
     const canvas = document.getElementById("spectrum-canvas");
@@ -182,11 +188,11 @@ function createChart() {
                     position: "bottom",
                     scaleLabel: {
                         display: true,
-                        labelString: "Frequency Bin"
+                        labelString: "Frequency (Hz)"
                     },
                     ticks: {
                         min: 0,
-                        max: fftBuffer.length
+                        max: nyquistFrequency
                     }
                 }],
                 yAxes: [{
@@ -194,11 +200,11 @@ function createChart() {
                     position: "left",
                     scaleLabel: {
                         display: true,
-                        labelString: "Power"
+                        labelString: "Power (dB)"
                     },
                     ticks: {
-                        min: 0,
-                        max: 255
+                        min: -DECIBELS_RANGE,
+                        max: 0
                     }
                 }]
             }
@@ -213,10 +219,12 @@ function updateChart() {
     const numValuesPerPoint = Math.max(1, Math.round(fftBuffer.length / maxNumPoints));
 
     const data = [];
-    for (let i = 0; i < fftBuffer.length; i += numValuesPerPoint) {
+    for (let bin = 0; bin < fftBuffer.length; bin += numValuesPerPoint) {
+        const frequency = (bin / fftBuffer.length) * nyquistFrequency;
+        const decibels = (fftBuffer[bin] - 255) / 255.0 * DECIBELS_RANGE;
         const point = {
-            x: i,
-            y: fftBuffer[i]
+            x: frequency,
+            y: decibels
         };
         data.push(point);
     }
@@ -226,7 +234,7 @@ function updateChart() {
         lineTension: 0, // disable interpolation
         pointRadius: 0, // disable circles for points
         borderWidth: 1,
-        backgroundColor: "rgba(255,0,0,0.5)",
+        backgroundColor: "rgba(0,0,0,0)",
         borderColor: "rgba(255,0,0,1.0)"
     }];
 
