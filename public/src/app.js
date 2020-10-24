@@ -20,7 +20,7 @@ let audioSource;
 
 let ready = false;
 let startTime;
-let currTime;
+let currTime = 0;
 let playerTime = 0;
 let hasPlayerTimeChanged = false;
 
@@ -180,6 +180,7 @@ function getTimeString(time) {
 function createTimeDomainChart() {
     const shouldResize = timeDomainCanvas.width + 50 > window.innerWidth;
     const ctx = timeDomainCanvas.getContext("2d");
+
     timeDomainChart = new Chart(ctx, {
         type: 'line',
         options: {
@@ -200,7 +201,19 @@ function createTimeDomainChart() {
                     },
                     ticks: {
                         min: 0,
-                        max: windowSizeInSeconds
+                        max: windowSizeInSeconds,
+                        callback: function(value, index, values) {
+                            // transform value to string
+                            // only show min and max value because otherwise too much flickering, looks confusing
+                            if (index === 0) {
+                                return currTime.toFixed(3);
+                            } else if (index === values.length - 1) {
+                                const endTime = currTime + windowSizeInSeconds;
+                                return endTime.toFixed(3);
+                            } else {
+                                return "";
+                            }
+                        }
                     }
                 }],
                 yAxes: [{
@@ -223,6 +236,7 @@ function createTimeDomainChart() {
 function createFrequencyDomainChart() {
     const shouldResize = frequencyDomainCanvas.width + 50 > window.innerWidth;
     const ctx = frequencyDomainCanvas.getContext("2d");
+
     frequencyDomainChart = new Chart(ctx, {
         type: 'line',
         options: {
