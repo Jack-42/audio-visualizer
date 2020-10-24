@@ -11,7 +11,8 @@ let analyzer;
 let timeDomainData;
 let frequencyDomainData;
 let nyquistFrequency;
-let updateIntervalInMs;
+let windowSizeInSeconds;
+let windowSizeInMs;
 let timer;
 
 let audioBuffer;
@@ -37,10 +38,11 @@ function init() {
     analyzer.fftSize = WINDOW_SIZE;
     analyzer.connect(audioCtx.destination);
 
-    timeDomainData = new Uint8Array(analyzer.fftSize);
+    timeDomainData = new Uint8Array(WINDOW_SIZE);
     frequencyDomainData = new Uint8Array(analyzer.frequencyBinCount);
     nyquistFrequency = audioCtx.sampleRate / 2;
-    updateIntervalInMs = (analyzer.fftSize / audioCtx.sampleRate) * 1000;
+    windowSizeInSeconds = WINDOW_SIZE / audioCtx.sampleRate;
+    windowSizeInMs = windowSizeInSeconds * 1000;
 
     timeDomainCanvas = document.getElementById("time-domain-canvas");
     frequencyDomainCanvas = document.getElementById("frequency-domain-canvas");
@@ -87,7 +89,7 @@ function start() {
 
     timer = setInterval(() => {
         update();
-    }, updateIntervalInMs);
+    }, windowSizeInMs);
 
     document.getElementById("btn-play-pause").value = "Pause";
     document.getElementById("time-slider").max = Math.floor(audioBuffer.duration);
@@ -193,7 +195,11 @@ function createTimeDomainChart() {
                     position: "bottom",
                     scaleLabel: {
                         display: true,
-                        labelString: "Time"
+                        labelString: "Time (s)"
+                    },
+                    ticks: {
+                        min: 0,
+                        max: windowSizeInSeconds
                     }
                 }],
                 yAxes: [{
@@ -204,8 +210,8 @@ function createTimeDomainChart() {
                         labelString: "Amplitude"
                     },
                     ticks: {
-                        min: -1,
-                        max: 1
+                        min: -1.0,
+                        max: 1.0
                     }
                 }]
             }
@@ -266,9 +272,10 @@ function updateTimeDomainChart() {
 
     const data = [];
     for (let i = 0; i < timeDomainData.length; i += numValuesPerPoint) {
+        const time = i / audioCtx.sampleRate;
         const amplitude = (timeDomainData[i] - 128) / 255.0;
         const point = {
-            x: i,
+            x: time,
             y: amplitude
         };
         data.push(point);
