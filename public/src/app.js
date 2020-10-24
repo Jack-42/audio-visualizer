@@ -202,6 +202,10 @@ function createTimeDomainChart() {
                     scaleLabel: {
                         display: true,
                         labelString: "Amplitude"
+                    },
+                    ticks: {
+                        min: -1,
+                        max: 1
                     }
                 }]
             }
@@ -262,9 +266,10 @@ function updateTimeDomainChart() {
 
     const data = [];
     for (let i = 0; i < timeDomainData.length; i += numValuesPerPoint) {
+        const amplitude = (timeDomainData[i] - 128) / 255.0;
         const point = {
             x: i,
-            y: timeDomainData[i]
+            y: amplitude
         };
         data.push(point);
     }
