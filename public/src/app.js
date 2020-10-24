@@ -5,7 +5,9 @@ const DECIBELS_RANGE = 90;
 
 let audioCtx;
 let analyzer;
+
 let fftBuffer;
+let nyquistFrequency;
 let updateIntervalInMs;
 let timer;
 
@@ -30,9 +32,10 @@ function init() {
     analyzer.minDecibels = -DECIBELS_RANGE;
     analyzer.maxDecibels = 0;
     analyzer.fftSize = WINDOW_SIZE;
-    const bufferSize = analyzer.frequencyBinCount;
-    fftBuffer = new Uint8Array(bufferSize);
     analyzer.connect(audioCtx.destination);
+
+    fftBuffer = new Uint8Array(analyzer.frequencyBinCount);
+    nyquistFrequency = audioCtx.sampleRate / 2;
     updateIntervalInMs = (WINDOW_SIZE / audioCtx.sampleRate) * 1000;
 
     const canvas = document.getElementById("spectrum-canvas");
@@ -185,11 +188,11 @@ function createChart() {
                     position: "bottom",
                     scaleLabel: {
                         display: true,
-                        labelString: "Frequency Bin"
+                        labelString: "Frequency (Hz)"
                     },
                     ticks: {
                         min: 0,
-                        max: fftBuffer.length
+                        max: nyquistFrequency
                     }
                 }],
                 yAxes: [{
@@ -216,10 +219,11 @@ function updateChart() {
     const numValuesPerPoint = Math.max(1, Math.round(fftBuffer.length / maxNumPoints));
 
     const data = [];
-    for (let i = 0; i < fftBuffer.length; i += numValuesPerPoint) {
-        const decibels = (fftBuffer[i] - 255) / 255.0 * DECIBELS_RANGE;
+    for (let bin = 0; bin < fftBuffer.length; bin += numValuesPerPoint) {
+        const frequency = (bin / fftBuffer.length) * nyquistFrequency;
+        const decibels = (fftBuffer[bin] - 255) / 255.0 * DECIBELS_RANGE;
         const point = {
-            x: i,
+            x: frequency,
             y: decibels
         };
         data.push(point);
