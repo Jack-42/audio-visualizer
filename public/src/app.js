@@ -3,7 +3,7 @@ const AudioContext = window.AudioContext || window.webkitAudioContext; // for le
 const WINDOW_SIZE = 512;
 const DECIBELS_RANGE = 90;
 
-const NUM_PIXELS_PER_POINT = 4; // TODO: should be user setting
+const NUM_PIXELS_PER_POINT = 1;
 
 let audioCtx;
 let analyzer;
@@ -186,15 +186,20 @@ function createChart() {
             responsive: shouldResize,
             scales: {
                 xAxes: [{
-                    type: "linear",
+                    type: "logarithmic",
                     position: "bottom",
                     scaleLabel: {
                         display: true,
                         labelString: "Frequency (Hz)"
                     },
                     ticks: {
-                        min: 0,
-                        max: nyquistFrequency
+                        min: 50,
+                        max: nyquistFrequency,
+                        callback: function(value, index, values) {
+                            // transform value to string
+                            // necessary, because defaults to scientific notation in logarithmic scale
+                            return value.toString();
+                        }
                     }
                 }],
                 yAxes: [{
