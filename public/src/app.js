@@ -230,7 +230,7 @@ function updateChart() {
         lineTension: 0, // disable interpolation
         pointRadius: 0, // disable circles for points
         borderWidth: 1,
-        backgroundColor: "rgba(255,0,0,0.5)",
+        backgroundColor: "rgba(0,0,0,0)",
         borderColor: "rgba(255,0,0,1.0)"
     }];
 
