@@ -8,7 +8,8 @@ const NUM_PIXELS_PER_POINT = 1;
 let audioCtx;
 let analyzer;
 
-let fftBuffer;
+let timeDomainData;
+let frequencyDomainData;
 let nyquistFrequency;
 let updateIntervalInMs;
 let timer;
@@ -21,9 +22,11 @@ let startTime;
 let playerTime = 0;
 let hasPlayerTimeChanged = false;
 
+let timeDomainCanvas;
 let frequencyDomainCanvas;
 
-let chart;
+let timeDomainChart;
+let frequencyDomainChart;
 
 function init() {
     audioCtx = new AudioContext();
@@ -34,11 +37,14 @@ function init() {
     analyzer.fftSize = WINDOW_SIZE;
     analyzer.connect(audioCtx.destination);
 
-    fftBuffer = new Uint8Array(analyzer.frequencyBinCount);
+    timeDomainData = new Uint8Array(analyzer.fftSize);
+    frequencyDomainData = new Uint8Array(analyzer.frequencyBinCount);
     nyquistFrequency = audioCtx.sampleRate / 2;
-    updateIntervalInMs = (WINDOW_SIZE / audioCtx.sampleRate) * 1000;
+    updateIntervalInMs = (analyzer.fftSize / audioCtx.sampleRate) * 1000;
 
+    timeDomainCanvas = document.getElementById("time-domain-canvas");
     frequencyDomainCanvas = document.getElementById("frequency-domain-canvas");
+    createTimeDomainChart();
     createFrequencyDomainChart();
 }
 
@@ -149,7 +155,9 @@ function update() {
         return;
     }
     updateTime();
-    analyzer.getByteFrequencyData(fftBuffer);
+    analyzer.getByteTimeDomainData(timeDomainData);
+    analyzer.getByteFrequencyData(frequencyDomainData);
+    updateTimeDomainChart();
     updateFrequencyDomainChart();
 }
 
@@ -166,10 +174,45 @@ function getTimeString(time) {
     return date.toISOString().substr(14, 5);
 }
 
+function createTimeDomainChart() {
+    const shouldResize = timeDomainCanvas.width + 50 > window.innerWidth;
+    const ctx = timeDomainCanvas.getContext("2d");
+    timeDomainChart = new Chart(ctx, {
+        type: 'line',
+        options: {
+            animation: {
+                duration: 0 // disable animation
+            },
+            legend: {
+                display: false // disable legend (database label)
+            },
+            responsive: shouldResize,
+            scales: {
+                xAxes: [{
+                    type: "linear",
+                    position: "bottom",
+                    scaleLabel: {
+                        display: true,
+                        labelString: "Time"
+                    }
+                }],
+                yAxes: [{
+                    type: "linear",
+                    position: "left",
+                    scaleLabel: {
+                        display: true,
+                        labelString: "Amplitude"
+                    }
+                }]
+            }
+        }
+    });
+}
+
 function createFrequencyDomainChart() {
     const shouldResize = frequencyDomainCanvas.width + 50 > window.innerWidth;
     const ctx = frequencyDomainCanvas.getContext("2d");
-    chart = new Chart(ctx, {
+    frequencyDomainChart = new Chart(ctx, {
         type: 'line',
         options: {
             animation: {
@@ -214,14 +257,37 @@ function createFrequencyDomainChart() {
     });
 }
 
-function updateFrequencyDomainChart() {
-    const maxNumPoints = Math.round(frequencyDomainCanvas.width / NUM_PIXELS_PER_POINT);
-    const numValuesPerPoint = Math.max(1, Math.round(fftBuffer.length / maxNumPoints));
+function updateTimeDomainChart() {
+    const numValuesPerPoint = getNumValuesPerPoint(timeDomainCanvas.width, timeDomainData.length);
 
     const data = [];
-    for (let bin = 0; bin < fftBuffer.length; bin += numValuesPerPoint) {
-        const frequency = (bin / fftBuffer.length) * nyquistFrequency;
-        const decibels = (fftBuffer[bin] - 255) / 255.0 * DECIBELS_RANGE;
+    for (let i = 0; i < timeDomainData.length; i += numValuesPerPoint) {
+        const point = {
+            x: i,
+            y: timeDomainData[i]
+        };
+        data.push(point);
+    }
+
+    timeDomainChart.data.datasets = [{
+        data: data,
+        lineTension: 0, // disable interpolation
+        pointRadius: 0, // disable circles for points
+        borderWidth: 1,
+        backgroundColor: "rgba(0,0,0,0)",
+        borderColor: "rgba(63,63,63,1.0)"
+    }];
+
+    timeDomainChart.update();
+}
+
+function updateFrequencyDomainChart() {
+    const numValuesPerPoint = getNumValuesPerPoint(frequencyDomainCanvas.width, frequencyDomainData.length);
+
+    const data = [];
+    for (let bin = 0; bin < frequencyDomainData.length; bin += numValuesPerPoint) {
+        const frequency = (bin / frequencyDomainData.length) * nyquistFrequency;
+        const decibels = (frequencyDomainData[bin] - 255) / 255.0 * DECIBELS_RANGE;
         const point = {
             x: frequency,
             y: decibels
@@ -229,7 +295,7 @@ function updateFrequencyDomainChart() {
         data.push(point);
     }
 
-    chart.data.datasets = [{
+    frequencyDomainChart.data.datasets = [{
         data: data,
         lineTension: 0, // disable interpolation
         pointRadius: 0, // disable circles for points
@@ -238,5 +304,10 @@ function updateFrequencyDomainChart() {
         borderColor: "rgba(255,0,0,1.0)"
     }];
 
-    chart.update();
+    frequencyDomainChart.update();
+}
+
+function getNumValuesPerPoint(canvasWidth, numValues) {
+    const maxNumPoints = Math.round(canvasWidth / NUM_PIXELS_PER_POINT);
+    return Math.max(1, Math.round(numValues / maxNumPoints));
 }
