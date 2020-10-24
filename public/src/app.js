@@ -3,6 +3,8 @@ const AudioContext = window.AudioContext || window.webkitAudioContext; // for le
 const WINDOW_SIZE = 512;
 const DECIBELS_RANGE = 90;
 
+const NUM_PIXELS_PER_POINT = 4; // TODO: should be user setting
+
 let audioCtx;
 let analyzer;
 
@@ -213,9 +215,7 @@ function createChart() {
 }
 
 function updateChart() {
-    // have at most one point per pixel
-    // e.g. if 2048 values but 512 pixels, then 4 values per point, i.e. skipping 3 values each
-    const maxNumPoints = canvasWidth;
+    const maxNumPoints = Math.round(canvasWidth / NUM_PIXELS_PER_POINT);
     const numValuesPerPoint = Math.max(1, Math.round(fftBuffer.length / maxNumPoints));
 
     const data = [];
