@@ -1,6 +1,6 @@
 const AudioContext = window.AudioContext || window.webkitAudioContext; // for legacy browsers
 
-const WINDOW_SIZE = 512;
+const WINDOW_SIZE = 1024;
 const DECIBELS_RANGE = 90;
 
 const NUM_PIXELS_PER_POINT = 1;
