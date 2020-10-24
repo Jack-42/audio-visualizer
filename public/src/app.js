@@ -200,8 +200,8 @@ function createChart() {
                         labelString: "Power"
                     },
                     ticks: {
-                        min: 0,
-                        max: 255
+                        min: -DECIBELS_RANGE,
+                        max: 0
                     }
                 }]
             }
@@ -217,9 +217,10 @@ function updateChart() {
 
     const data = [];
     for (let i = 0; i < fftBuffer.length; i += numValuesPerPoint) {
+        const decibels = (fftBuffer[i] - 255) / 255.0 * DECIBELS_RANGE;
         const point = {
             x: i,
-            y: fftBuffer[i]
+            y: decibels
         };
         data.push(point);
     }
