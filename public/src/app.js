@@ -197,7 +197,7 @@ function createChart() {
                     position: "left",
                     scaleLabel: {
                         display: true,
-                        labelString: "Power"
+                        labelString: "Power (dB)"
                     },
                     ticks: {
                         min: -DECIBELS_RANGE,
