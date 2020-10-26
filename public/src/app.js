@@ -162,6 +162,7 @@ function update() {
     analyzer.getByteFrequencyData(frequencyDomainData);
     updateTimeDomainChart();
     updateFrequencyDomainChart();
+    console.log("peak frequency", getPeakFrequency()); // TODO Remove test code
 }
 
 function updateTime() {
@@ -317,7 +318,7 @@ function updateFrequencyDomainChart() {
 
     const data = [];
     for (let bin = 0; bin < frequencyDomainData.length; bin += numValuesPerPoint) {
-        const frequency = (bin / frequencyDomainData.length) * nyquistFrequency;
+        const frequency = binToFrequency(bin);
         const decibels = (frequencyDomainData[bin] - 255) / 255.0 * DECIBELS_RANGE;
         const point = {
             x: frequency,
@@ -341,4 +342,20 @@ function updateFrequencyDomainChart() {
 function getNumValuesPerPoint(canvasWidth, numValues) {
     const maxNumPoints = Math.round(canvasWidth / NUM_PIXELS_PER_POINT);
     return Math.max(1, Math.round(numValues / maxNumPoints));
+}
+
+function getPeakFrequency() {
+    let peakPower = frequencyDomainData[1];
+    let peakBin = 0;
+    for (let bin = 0; bin < frequencyDomainData.length; bin++) {
+        if (frequencyDomainData[bin] > peakPower) {
+            peakPower = frequencyDomainData[bin];
+            peakBin = bin;
+        }
+    }
+    return binToFrequency(peakBin);
+}
+
+function binToFrequency(bin) {
+    return (bin / frequencyDomainData.length) * nyquistFrequency
 }
