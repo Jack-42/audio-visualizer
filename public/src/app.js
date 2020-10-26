@@ -3,8 +3,6 @@ const AudioContext = window.AudioContext || window.webkitAudioContext; // for le
 const WINDOW_SIZE = 1024;
 const DECIBELS_RANGE = 90;
 
-const NUM_PIXELS_PER_POINT = 1;
-
 let audioCtx;
 let analyzer;
 
@@ -49,7 +47,7 @@ function init() {
     frequencyDomainCanvas = document.getElementById("frequency-domain-canvas");
 
     timeDomainChart = new TimeDomainChart(timeDomainCanvas, windowSizeInSeconds);
-    createFrequencyDomainChart();
+    frequencyDomainChart = new FrequencyDomainChart(frequencyDomainCanvas);
 }
 
 function loadFile(file) {
@@ -163,7 +161,7 @@ function update() {
     analyzer.getByteFrequencyData(frequencyDomainData);
     updatePeakFrequency();
     timeDomainChart.update(timeDomainData, currTime);
-    updateFrequencyDomainChart();
+    frequencyDomainChart.update(frequencyDomainData);
 }
 
 function updateTime() {
@@ -181,86 +179,6 @@ function getTimeString(time) {
     const date = new Date(0);
     date.setSeconds(time);
     return date.toISOString().substr(14, 5);
-}
-
-function createFrequencyDomainChart() {
-    const shouldResize = frequencyDomainCanvas.width + 50 > window.innerWidth;
-    const ctx = frequencyDomainCanvas.getContext("2d");
-
-    frequencyDomainChart = new Chart(ctx, {
-        type: 'line',
-        options: {
-            animation: {
-                duration: 0 // disable animation
-            },
-            legend: {
-                display: false // disable legend (database label)
-            },
-            responsive: shouldResize,
-            scales: {
-                xAxes: [{
-                    type: "logarithmic",
-                    position: "bottom",
-                    scaleLabel: {
-                        display: true,
-                        labelString: "Frequency (Hz)"
-                    },
-                    ticks: {
-                        min: 50,
-                        max: nyquistFrequency,
-                        callback: function(value, index, values) {
-                            // transform value to string
-                            // necessary, because defaults to scientific notation in logarithmic scale
-                            return value.toString();
-                        }
-                    }
-                }],
-                yAxes: [{
-                    type: "linear",
-                    position: "left",
-                    scaleLabel: {
-                        display: true,
-                        labelString: "Power (dB)"
-                    },
-                    ticks: {
-                        min: -DECIBELS_RANGE,
-                        max: 0
-                    }
-                }]
-            }
-        }
-    });
-}
-
-function updateFrequencyDomainChart() {
-    const numValuesPerPoint = getNumValuesPerPoint(frequencyDomainCanvas.width, frequencyDomainData.length);
-
-    const data = [];
-    for (let bin = 0; bin < frequencyDomainData.length; bin += numValuesPerPoint) {
-        const frequency = binToFrequency(bin);
-        const decibels = (frequencyDomainData[bin] - 255) / 255.0 * DECIBELS_RANGE;
-        const point = {
-            x: frequency,
-            y: decibels
-        };
-        data.push(point);
-    }
-
-    frequencyDomainChart.data.datasets = [{
-        data: data,
-        lineTension: 0, // disable interpolation
-        pointRadius: 0, // disable circles for points
-        borderWidth: 1,
-        backgroundColor: "rgba(0,0,0,0)",
-        borderColor: "rgba(255,0,0,1.0)"
-    }];
-
-    frequencyDomainChart.update();
-}
-
-function getNumValuesPerPoint(canvasWidth, numValues) {
-    const maxNumPoints = Math.round(canvasWidth / NUM_PIXELS_PER_POINT);
-    return Math.max(1, Math.round(numValues / maxNumPoints));
 }
 
 function getPeakFrequency() {

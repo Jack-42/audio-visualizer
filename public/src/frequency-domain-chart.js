@@ -1,8 +1,6 @@
-class TimeDomainChart {
-    constructor(canvas, windowSizeInSeconds) {
+class FrequencyDomainChart {
+    constructor(canvas) {
         this.canvas = canvas;
-        this.windowSizeInSeconds = windowSizeInSeconds;
-        this.currTime = 0;
 
         const shouldResize = this.canvas.width + 50 > window.innerWidth;
         const ctx = this.canvas.getContext("2d");
@@ -19,23 +17,19 @@ class TimeDomainChart {
                 responsive: shouldResize,
                 scales: {
                     xAxes: [{
-                        type: "linear",
+                        type: "logarithmic",
                         position: "bottom",
                         scaleLabel: {
                             display: true,
-                            labelString: "Time (s)"
+                            labelString: "Frequency (Hz)"
                         },
                         ticks: {
-                            min: 0,
-                            max: this.windowSizeInSeconds,
-                            callback: function(value, index, values) {
+                            min: 50,
+                            max: nyquistFrequency,
+                            callback: function (value, index, values) {
                                 // transform value to string
-                                // only show min and max value because otherwise too much flickering, looks confusing
-                                if (index === 0 || index === values.length - 1) {
-                                    return value.toFixed(3);
-                                } else {
-                                    return "";
-                                }
+                                // necessary, because defaults to scientific notation in logarithmic scale
+                                return value.toString();
                             }
                         }
                     }],
@@ -44,11 +38,11 @@ class TimeDomainChart {
                         position: "left",
                         scaleLabel: {
                             display: true,
-                            labelString: "Amplitude"
+                            labelString: "Power (dB)"
                         },
                         ticks: {
-                            min: -1.0,
-                            max: 1.0
+                            min: -DECIBELS_RANGE,
+                            max: 0
                         }
                     }]
                 }
@@ -57,18 +51,15 @@ class TimeDomainChart {
     }
 
     // TODO: pre-process data on caller side
-    update(rawData, currTime) {
-        this.currTime = currTime;
-
+    update(rawData) {
         const numValuesPerPoint = this.getNumValuesPerPoint(rawData.length);
         const data = [];
-
-        for (let i = 0; i < rawData.length; i += numValuesPerPoint) {
-            const time = (i / audioCtx.sampleRate) + this.currTime; // offset by start time of the current window
-            const amplitude = (rawData[i] - 128) / 255.0;
+        for (let bin = 0; bin < rawData.length; bin += numValuesPerPoint) {
+            const frequency = this.binToFrequency(bin);
+            const decibels = (rawData[bin] - 255) / 255.0 * DECIBELS_RANGE;
             const point = {
-                x: time,
-                y: amplitude
+                x: frequency,
+                y: decibels
             };
             data.push(point);
         }
@@ -79,12 +70,8 @@ class TimeDomainChart {
             pointRadius: 0, // disable circles for points
             borderWidth: 1,
             backgroundColor: "rgba(0,0,0,0)",
-            borderColor: "rgba(63,63,63,1.0)"
+            borderColor: "rgba(255,0,0,1.0)"
         }];
-
-        // update range of time for current window
-        this.chart.options.scales.xAxes[0].ticks.min = this.currTime;
-        this.chart.options.scales.xAxes[0].ticks.max = this.currTime + windowSizeInSeconds;
 
         this.chart.update();
     }
@@ -93,5 +80,10 @@ class TimeDomainChart {
         const numPixelsPerPoint = 1;
         const maxNumPoints = Math.round(this.canvas.width / numPixelsPerPoint);
         return Math.max(1, Math.round(numValues / maxNumPoints));
+    }
+
+    // TODO: duplicated code, function exists in app.js
+    binToFrequency(bin) {
+        return (bin / frequencyDomainData.length) * nyquistFrequency
     }
 }
