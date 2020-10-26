@@ -160,9 +160,9 @@ function update() {
     updateTime();
     analyzer.getByteTimeDomainData(timeDomainData);
     analyzer.getByteFrequencyData(frequencyDomainData);
+    updatePeakFrequency();
     updateTimeDomainChart();
     updateFrequencyDomainChart();
-    console.log("peak frequency", getPeakFrequency()); // TODO Remove test code
 }
 
 function updateTime() {
@@ -170,6 +170,10 @@ function updateTime() {
     document.getElementById("time-slider").value = Math.floor(currTime);
     document.getElementById("time").textContent = getTimeString(currTime);
     document.getElementById("duration").textContent = getTimeString(audioBuffer.duration) ;
+}
+
+function updatePeakFrequency() {
+    document.getElementById("peak-frequency").textContent = getPeakFrequency();
 }
 
 function getTimeString(time) {
