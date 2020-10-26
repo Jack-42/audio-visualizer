@@ -1,8 +1,6 @@
 class TimeDomainChart {
     constructor(canvas, windowSizeInSeconds) {
         this.canvas = canvas;
-        this.windowSizeInSeconds = windowSizeInSeconds;
-        this.currTime = 0;
 
         const shouldResize = this.canvas.width + 50 > window.innerWidth;
         const ctx = this.canvas.getContext("2d");
@@ -27,7 +25,7 @@ class TimeDomainChart {
                         },
                         ticks: {
                             min: 0,
-                            max: this.windowSizeInSeconds,
+                            max: windowSizeInSeconds,
                             callback: function(value, index, values) {
                                 // transform value to string
                                 // only show min and max value because otherwise too much flickering, looks confusing
@@ -56,23 +54,7 @@ class TimeDomainChart {
         });
     }
 
-    // TODO: pre-process data on caller side
-    update(rawData, currTime) {
-        this.currTime = currTime;
-
-        const numValuesPerPoint = this.getNumValuesPerPoint(rawData.length);
-        const data = [];
-
-        for (let i = 0; i < rawData.length; i += numValuesPerPoint) {
-            const time = (i / audioCtx.sampleRate) + this.currTime; // offset by start time of the current window
-            const amplitude = (rawData[i] - 128) / 255.0;
-            const point = {
-                x: time,
-                y: amplitude
-            };
-            data.push(point);
-        }
-
+    update(data, minTime, maxTime) {
         this.chart.data.datasets = [{
             data: data,
             lineTension: 0, // disable interpolation
@@ -82,16 +64,10 @@ class TimeDomainChart {
             borderColor: "rgba(63,63,63,1.0)"
         }];
 
-        // update range of time for current window
-        this.chart.options.scales.xAxes[0].ticks.min = this.currTime;
-        this.chart.options.scales.xAxes[0].ticks.max = this.currTime + windowSizeInSeconds;
+        // update range of x axis for current window
+        this.chart.options.scales.xAxes[0].ticks.min = minTime;
+        this.chart.options.scales.xAxes[0].ticks.max = maxTime;
 
         this.chart.update();
-    }
-
-    getNumValuesPerPoint(numValues) {
-        const numPixelsPerPoint = 1;
-        const maxNumPoints = Math.round(this.canvas.width / numPixelsPerPoint);
-        return Math.max(1, Math.round(numValues / maxNumPoints));
     }
 }

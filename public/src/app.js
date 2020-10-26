@@ -3,6 +3,8 @@ const AudioContext = window.AudioContext || window.webkitAudioContext; // for le
 const WINDOW_SIZE = 1024;
 const DECIBELS_RANGE = 90;
 
+const NUM_PIXELS_PER_POINT = 1;
+
 let audioCtx;
 let analyzer;
 
@@ -160,8 +162,8 @@ function update() {
     analyzer.getByteTimeDomainData(timeDomainData);
     analyzer.getByteFrequencyData(frequencyDomainData);
     updatePeakFrequency();
-    timeDomainChart.update(timeDomainData, currTime);
-    frequencyDomainChart.update(frequencyDomainData);
+    updateTimeDomainChart();
+    updateFrequencyDomainChart();
 }
 
 function updateTime() {
@@ -171,14 +173,14 @@ function updateTime() {
     document.getElementById("duration").textContent = getTimeString(audioBuffer.duration) ;
 }
 
-function updatePeakFrequency() {
-    document.getElementById("peak-frequency").textContent = getPeakFrequency();
-}
-
 function getTimeString(time) {
     const date = new Date(0);
     date.setSeconds(time);
     return date.toISOString().substr(14, 5);
+}
+
+function updatePeakFrequency() {
+    document.getElementById("peak-frequency").textContent = getPeakFrequency();
 }
 
 function getPeakFrequency() {
@@ -195,4 +197,32 @@ function getPeakFrequency() {
 
 function binToFrequency(bin) {
     return (bin / frequencyDomainData.length) * nyquistFrequency
+}
+
+function updateTimeDomainChart() {
+    const numValuesPerPoint = getNumValuesPerPoint(timeDomainCanvas.width, timeDomainData.length);
+    const data = [];
+
+    for (let i = 0; i < timeDomainData.length; i += numValuesPerPoint) {
+        const time = (i / audioCtx.sampleRate) + currTime; // offset by start time of the current window
+        const amplitude = (timeDomainData[i] - 128) / 255.0;
+        const point = {
+            x: time,
+            y: amplitude
+        };
+        data.push(point);
+    }
+
+    const minTime = currTime;
+    const maxTime = currTime + windowSizeInSeconds;
+    timeDomainChart.update(data, minTime, maxTime);
+}
+
+function updateFrequencyDomainChart() {
+    frequencyDomainChart.update(frequencyDomainData);
+}
+
+function getNumValuesPerPoint(canvasWidth, numValues) {
+    const maxNumPoints = Math.round(canvasWidth / NUM_PIXELS_PER_POINT);
+    return Math.max(1, Math.round(numValues / maxNumPoints));
 }
