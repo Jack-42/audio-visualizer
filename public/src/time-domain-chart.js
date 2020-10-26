@@ -31,11 +31,8 @@ class TimeDomainChart {
                             callback: function(value, index, values) {
                                 // transform value to string
                                 // only show min and max value because otherwise too much flickering, looks confusing
-                                if (index === 0) {
-                                    return this.currTime.toFixed(3);
-                                } else if (index === values.length - 1) {
-                                    const endTime = this.currTime + this.windowSizeInSeconds;
-                                    return endTime.toFixed(3);
+                                if (index === 0 || index === values.length - 1) {
+                                    return value.toFixed(3);
                                 } else {
                                     return "";
                                 }
