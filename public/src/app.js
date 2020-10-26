@@ -237,5 +237,5 @@ function getNumValuesPerPoint(canvasWidth, numValues) {
 }
 
 function binToFrequency(bin) {
-    return (bin / frequencyDomainData.length) * nyquistFrequency
+    return (bin / frequencyDomainData.length) * nyquistFrequency;
 }
