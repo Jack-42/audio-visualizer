@@ -49,7 +49,7 @@ function init() {
     frequencyDomainCanvas = document.getElementById("frequency-domain-canvas");
 
     timeDomainChart = new TimeDomainChart(timeDomainCanvas, windowSizeInSeconds);
-    frequencyDomainChart = new FrequencyDomainChart(frequencyDomainCanvas);
+    frequencyDomainChart = new FrequencyDomainChart(frequencyDomainCanvas, DECIBELS_RANGE, nyquistFrequency);
 }
 
 function loadFile(file) {
@@ -195,10 +195,6 @@ function getPeakFrequency() {
     return binToFrequency(peakBin);
 }
 
-function binToFrequency(bin) {
-    return (bin / frequencyDomainData.length) * nyquistFrequency
-}
-
 function updateTimeDomainChart() {
     const numValuesPerPoint = getNumValuesPerPoint(timeDomainCanvas.width, timeDomainData.length);
     const data = [];
@@ -219,10 +215,27 @@ function updateTimeDomainChart() {
 }
 
 function updateFrequencyDomainChart() {
-    frequencyDomainChart.update(frequencyDomainData);
+    const numValuesPerPoint = this.getNumValuesPerPoint(frequencyDomainCanvas.width, frequencyDomainData.length);
+    const data = [];
+
+    for (let bin = 0; bin < frequencyDomainData.length; bin += numValuesPerPoint) {
+        const frequency = this.binToFrequency(bin);
+        const decibels = (frequencyDomainData[bin] - 255) / 255.0 * DECIBELS_RANGE;
+        const point = {
+            x: frequency,
+            y: decibels
+        };
+        data.push(point);
+    }
+
+    frequencyDomainChart.update(data);
 }
 
 function getNumValuesPerPoint(canvasWidth, numValues) {
     const maxNumPoints = Math.round(canvasWidth / NUM_PIXELS_PER_POINT);
     return Math.max(1, Math.round(numValues / maxNumPoints));
+}
+
+function binToFrequency(bin) {
+    return (bin / frequencyDomainData.length) * nyquistFrequency
 }

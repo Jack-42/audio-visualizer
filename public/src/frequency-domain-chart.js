@@ -1,5 +1,5 @@
 class FrequencyDomainChart {
-    constructor(canvas) {
+    constructor(canvas, decibelsRange, maxFrequency) {
         this.canvas = canvas;
 
         const shouldResize = this.canvas.width + 50 > window.innerWidth;
@@ -25,7 +25,7 @@ class FrequencyDomainChart {
                         },
                         ticks: {
                             min: 50,
-                            max: nyquistFrequency,
+                            max: maxFrequency,
                             callback: function (value, index, values) {
                                 // transform value to string
                                 // necessary, because defaults to scientific notation in logarithmic scale
@@ -41,7 +41,7 @@ class FrequencyDomainChart {
                             labelString: "Power (dB)"
                         },
                         ticks: {
-                            min: -DECIBELS_RANGE,
+                            min: -decibelsRange,
                             max: 0
                         }
                     }]
@@ -50,20 +50,7 @@ class FrequencyDomainChart {
         });
     }
 
-    // TODO: pre-process data on caller side
-    update(rawData) {
-        const numValuesPerPoint = this.getNumValuesPerPoint(rawData.length);
-        const data = [];
-        for (let bin = 0; bin < rawData.length; bin += numValuesPerPoint) {
-            const frequency = this.binToFrequency(bin);
-            const decibels = (rawData[bin] - 255) / 255.0 * DECIBELS_RANGE;
-            const point = {
-                x: frequency,
-                y: decibels
-            };
-            data.push(point);
-        }
-
+    update(data) {
         this.chart.data.datasets = [{
             data: data,
             lineTension: 0, // disable interpolation
@@ -74,16 +61,5 @@ class FrequencyDomainChart {
         }];
 
         this.chart.update();
-    }
-
-    getNumValuesPerPoint(numValues) {
-        const numPixelsPerPoint = 1;
-        const maxNumPoints = Math.round(this.canvas.width / numPixelsPerPoint);
-        return Math.max(1, Math.round(numValues / maxNumPoints));
-    }
-
-    // TODO: duplicated code, function exists in app.js
-    binToFrequency(bin) {
-        return (bin / frequencyDomainData.length) * nyquistFrequency
     }
 }
