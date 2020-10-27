@@ -34,7 +34,16 @@ let minFrequency;
 let maxFrequency;
 
 function init() {
-    audioCtx = new AudioContext();
+    const sampleRateField = document.getElementById("sample-rate");
+    if (!sampleRateField.checkValidity()) {
+        alert("The sample rate is not valid, must lie in interval 8000 to 96000!");
+        return;
+    }
+    const sampleRate = Number.parseInt(sampleRateField.value);
+
+    audioCtx = new AudioContext({
+        sampleRate: sampleRate
+    });
 
     analyzer = audioCtx.createAnalyser();
     analyzer.minDecibels = -DECIBELS_RANGE;
@@ -55,6 +64,9 @@ function init() {
 
     timeDomainChart = new TimeDomainChart(timeDomainCanvas, windowSizeInSeconds);
     frequencyDomainChart = new FrequencyDomainChart(frequencyDomainCanvas, DECIBELS_RANGE, minFrequency, maxFrequency);
+
+    const statusLabel = document.getElementById("status");
+    statusLabel.innerText = "No file selected";
 }
 
 function initFrequencyRange() {
