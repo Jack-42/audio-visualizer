@@ -30,6 +30,9 @@ let frequencyDomainCanvas;
 let timeDomainChart;
 let frequencyDomainChart;
 
+let minFrequency = 20;
+let maxFrequency;
+
 function init() {
     audioCtx = new AudioContext();
 
@@ -42,6 +45,7 @@ function init() {
     timeDomainData = new Uint8Array(WINDOW_SIZE);
     frequencyDomainData = new Uint8Array(analyzer.frequencyBinCount);
     nyquistFrequency = audioCtx.sampleRate / 2;
+    maxFrequency = nyquistFrequency;
     windowSizeInSeconds = WINDOW_SIZE / audioCtx.sampleRate;
     windowSizeInMs = windowSizeInSeconds * 1000;
 
@@ -152,6 +156,25 @@ async function changePlayerTime(timeString) {
     playerTime = Number.parseInt(timeString);
     hasPlayerTimeChanged = true;
     await stop();
+}
+
+function changeFrequencyRange() {
+    const minFrequencyField = document.getElementById("min-frequency");
+    if (!minFrequencyField.checkValidity()) {
+        alert("The min frequency is not valid!");
+        return;
+    }
+
+    const maxFrequencyField = document.getElementById("max-frequency");
+    if (!maxFrequencyField.checkValidity()) {
+        alert("The max frequency is not valid!");
+        return;
+    }
+
+    const minFrequency = Number.parseInt(minFrequencyField.value);
+    console.log(minFrequency);
+    const maxFrequency = Number.parseInt(maxFrequencyField.value);
+    console.log(maxFrequency);
 }
 
 function update() {
