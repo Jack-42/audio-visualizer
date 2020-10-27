@@ -207,7 +207,7 @@ function updatePeakFrequency() {
 }
 
 function getPeakFrequency() {
-    let peakPower = frequencyDomainData[1];
+    let peakPower = 0;
     let peakBin = 0;
     for (let bin = 0; bin < frequencyDomainData.length; bin++) {
         if (frequencyDomainData[bin] > peakPower) {
