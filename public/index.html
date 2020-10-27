@@ -7,7 +7,7 @@
 </head>
 <body>
     <div>
-        <label for="sample-rate">Sample Rate (Hz):</label>
+        <label for="sample-rate">Sample Rate:</label>
         <input type="number" id="sample-rate" min="8000" max="96000" value="44100" size="6">
         <input type="button" value="Init" onclick="init()">
     </div>
@@ -33,14 +33,14 @@
     <br>
 
     <div>
-        <label for="min-frequency">Min (Hz):</label>
+        <label for="min-frequency">Min:</label>
         <input type="number" id="min-frequency" size="6">
-        <label for="max-frequency">Max (Hz):</label>
+        <label for="max-frequency">Max:</label>
         <input type="number" id="max-frequency" size="6">
         <input type="button" value="Confirm" onclick="changeFrequencyRange()">
     </div>
     <div>
-        <label>Peak (Hz):</label>
+        <label>Peak:</label>
         <label id="peak-frequency"></label>
     </div>
     <canvas id="frequency-domain-canvas" width="400" height="200"></canvas>
