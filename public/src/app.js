@@ -207,9 +207,12 @@ function updatePeakFrequency() {
 }
 
 function getPeakFrequency() {
+    const minBin = Math.max(0, frequencyToBin(minFrequency));
+    const maxBin = Math.min(frequencyToBin(maxFrequency), frequencyDomainData.length);
+
     let peakPower = 0;
     let peakBin = 0;
-    for (let bin = 0; bin < frequencyDomainData.length; bin++) {
+    for (let bin = minBin; bin < maxBin; bin++) {
         if (frequencyDomainData[bin] > peakPower) {
             peakPower = frequencyDomainData[bin];
             peakBin = bin;
@@ -261,4 +264,8 @@ function getNumValuesPerPoint(canvasWidth, numValues) {
 
 function binToFrequency(bin) {
     return (bin / frequencyDomainData.length) * nyquistFrequency;
+}
+
+function frequencyToBin(frequency) {
+    return Math.round((frequency / nyquistFrequency) * frequencyDomainData.length);
 }
