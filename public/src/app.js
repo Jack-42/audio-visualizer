@@ -32,7 +32,11 @@ let frequencyDomainChart;
 let minFrequency;
 let maxFrequency;
 
-function init() {
+async function init() {
+    if (audioSource) {
+        await stop();
+    }
+
     const sampleRateField = document.getElementById("sample-rate");
     if (!sampleRateField.checkValidity()) {
         alert("Invalid sample rate, must lie in range 8000 to 96000!");
