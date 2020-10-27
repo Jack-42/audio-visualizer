@@ -1,5 +1,5 @@
 class FrequencyDomainChart {
-    constructor(canvas, decibelsRange, maxFrequency) {
+    constructor(canvas, decibelsRange, minFrequency, maxFrequency) {
         this.canvas = canvas;
 
         const shouldResize = this.canvas.width + 50 > window.innerWidth;
@@ -24,7 +24,7 @@ class FrequencyDomainChart {
                             labelString: "Frequency (Hz)"
                         },
                         ticks: {
-                            min: 50,
+                            min: minFrequency,
                             max: maxFrequency,
                             callback: function (value, index, values) {
                                 // transform value to string
@@ -60,6 +60,12 @@ class FrequencyDomainChart {
             borderColor: "rgba(255,0,0,1.0)"
         }];
 
+        this.chart.update();
+    }
+
+    setFrequencyRange(minFrequency, maxFrequency) {
+        this.chart.options.scales.xAxes[0].ticks.min = minFrequency;
+        this.chart.options.scales.xAxes[0].ticks.max = maxFrequency;
         this.chart.update();
     }
 }

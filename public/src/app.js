@@ -53,7 +53,7 @@ function init() {
     frequencyDomainCanvas = document.getElementById("frequency-domain-canvas");
 
     timeDomainChart = new TimeDomainChart(timeDomainCanvas, windowSizeInSeconds);
-    frequencyDomainChart = new FrequencyDomainChart(frequencyDomainCanvas, DECIBELS_RANGE, nyquistFrequency);
+    frequencyDomainChart = new FrequencyDomainChart(frequencyDomainCanvas, DECIBELS_RANGE, minFrequency, maxFrequency);
 }
 
 function loadFile(file) {
@@ -171,10 +171,10 @@ function changeFrequencyRange() {
         return;
     }
 
-    const minFrequency = Number.parseInt(minFrequencyField.value);
-    console.log(minFrequency);
-    const maxFrequency = Number.parseInt(maxFrequencyField.value);
-    console.log(maxFrequency);
+    minFrequency = Number.parseInt(minFrequencyField.value);
+    maxFrequency = Number.parseInt(maxFrequencyField.value);
+
+    frequencyDomainChart.setFrequencyRange(minFrequency, maxFrequency);
 }
 
 function update() {
