@@ -30,6 +30,9 @@ let frequencyDomainCanvas;
 let timeDomainChart;
 let frequencyDomainChart;
 
+let minFrequency;
+let maxFrequency;
+
 function init() {
     audioCtx = new AudioContext();
 
@@ -48,8 +51,25 @@ function init() {
     timeDomainCanvas = document.getElementById("time-domain-canvas");
     frequencyDomainCanvas = document.getElementById("frequency-domain-canvas");
 
+    initFrequencyRange();
+
     timeDomainChart = new TimeDomainChart(timeDomainCanvas, windowSizeInSeconds);
-    frequencyDomainChart = new FrequencyDomainChart(frequencyDomainCanvas, DECIBELS_RANGE, nyquistFrequency);
+    frequencyDomainChart = new FrequencyDomainChart(frequencyDomainCanvas, DECIBELS_RANGE, minFrequency, maxFrequency);
+}
+
+function initFrequencyRange() {
+    minFrequency = 20;
+    maxFrequency = Math.floor(nyquistFrequency);
+
+    const minFrequencyField = document.getElementById("min-frequency");
+    minFrequencyField.min = minFrequency;
+    minFrequencyField.max = maxFrequency;
+    minFrequencyField.value = minFrequency;
+
+    const maxFrequencyField = document.getElementById("max-frequency");
+    maxFrequencyField.min = minFrequency;
+    maxFrequencyField.max = maxFrequency;
+    maxFrequencyField.value = maxFrequency;
 }
 
 function loadFile(file) {
@@ -154,6 +174,25 @@ async function changePlayerTime(timeString) {
     await stop();
 }
 
+function changeFrequencyRange() {
+    const minFrequencyField = document.getElementById("min-frequency");
+    if (!minFrequencyField.checkValidity()) {
+        alert("The min frequency is not valid!");
+        return;
+    }
+
+    const maxFrequencyField = document.getElementById("max-frequency");
+    if (!maxFrequencyField.checkValidity()) {
+        alert("The max frequency is not valid!");
+        return;
+    }
+
+    minFrequency = Number.parseInt(minFrequencyField.value);
+    maxFrequency = Number.parseInt(maxFrequencyField.value);
+
+    frequencyDomainChart.setFrequencyRange(minFrequency, maxFrequency);
+}
+
 function update() {
     if (!audioBuffer) {
         return;
@@ -184,9 +223,12 @@ function updatePeakFrequency() {
 }
 
 function getPeakFrequency() {
-    let peakPower = frequencyDomainData[1];
+    const minBin = Math.max(0, frequencyToBin(minFrequency));
+    const maxBin = Math.min(frequencyToBin(maxFrequency), frequencyDomainData.length);
+
+    let peakPower = 0;
     let peakBin = 0;
-    for (let bin = 0; bin < frequencyDomainData.length; bin++) {
+    for (let bin = minBin; bin < maxBin; bin++) {
         if (frequencyDomainData[bin] > peakPower) {
             peakPower = frequencyDomainData[bin];
             peakBin = bin;
@@ -238,4 +280,8 @@ function getNumValuesPerPoint(canvasWidth, numValues) {
 
 function binToFrequency(bin) {
     return (bin / frequencyDomainData.length) * nyquistFrequency;
+}
+
+function frequencyToBin(frequency) {
+    return Math.round((frequency / nyquistFrequency) * frequencyDomainData.length);
 }

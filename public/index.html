@@ -23,8 +23,17 @@
         <label id="duration">--:--</label>
     </div>
     <br>
+
     <canvas id="time-domain-canvas" width="400" height="200"></canvas>
     <br>
+
+    <div>
+        <label for="min-frequency">Min (Hz):</label>
+        <input type="number" id="min-frequency" size="10">
+        <label for="max-frequency">Max (Hz):</label>
+        <input type="number" id="max-frequency" size="10">
+        <input type="button" value="Confirm" onclick="changeFrequencyRange()">
+    </div>
     <div>
         <label>Peak (Hz):</label>
         <label id="peak-frequency"></label>
