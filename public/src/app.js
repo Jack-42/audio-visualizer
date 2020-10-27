@@ -30,7 +30,7 @@ let frequencyDomainCanvas;
 let timeDomainChart;
 let frequencyDomainChart;
 
-let minFrequency = 20;
+let minFrequency;
 let maxFrequency;
 
 function init() {
@@ -45,15 +45,31 @@ function init() {
     timeDomainData = new Uint8Array(WINDOW_SIZE);
     frequencyDomainData = new Uint8Array(analyzer.frequencyBinCount);
     nyquistFrequency = audioCtx.sampleRate / 2;
-    maxFrequency = nyquistFrequency;
     windowSizeInSeconds = WINDOW_SIZE / audioCtx.sampleRate;
     windowSizeInMs = windowSizeInSeconds * 1000;
 
     timeDomainCanvas = document.getElementById("time-domain-canvas");
     frequencyDomainCanvas = document.getElementById("frequency-domain-canvas");
 
+    initFrequencyRange();
+
     timeDomainChart = new TimeDomainChart(timeDomainCanvas, windowSizeInSeconds);
     frequencyDomainChart = new FrequencyDomainChart(frequencyDomainCanvas, DECIBELS_RANGE, minFrequency, maxFrequency);
+}
+
+function initFrequencyRange() {
+    minFrequency = 20;
+    maxFrequency = Math.floor(nyquistFrequency);
+
+    const minFrequencyField = document.getElementById("min-frequency");
+    minFrequencyField.min = minFrequency;
+    minFrequencyField.max = maxFrequency;
+    minFrequencyField.value = minFrequency;
+
+    const maxFrequencyField = document.getElementById("max-frequency");
+    maxFrequencyField.min = minFrequency;
+    maxFrequencyField.max = maxFrequency;
+    maxFrequencyField.value = maxFrequency;
 }
 
 function loadFile(file) {
