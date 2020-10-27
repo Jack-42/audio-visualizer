@@ -50,6 +50,10 @@ class FrequencyDomainChart {
         });
     }
 
+    destroy() {
+        this.chart.destroy();
+    }
+
     update(data) {
         this.chart.data.datasets = [{
             data: data,

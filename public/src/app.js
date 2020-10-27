@@ -62,7 +62,14 @@ function init() {
 
     initFrequencyRange();
 
+    if (timeDomainChart) {
+        timeDomainChart.destroy();
+    }
     timeDomainChart = new TimeDomainChart(timeDomainCanvas, windowSizeInSeconds);
+
+    if (frequencyDomainChart) {
+        frequencyDomainChart.destroy();
+    }
     frequencyDomainChart = new FrequencyDomainChart(frequencyDomainCanvas, DECIBELS_RANGE, minFrequency, maxFrequency);
 
     const statusLabel = document.getElementById("status");
