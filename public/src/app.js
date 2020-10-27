@@ -1,6 +1,5 @@
 const AudioContext = window.AudioContext || window.webkitAudioContext; // for legacy browsers
 
-const WINDOW_SIZE = 1024;
 const DECIBELS_RANGE = 90;
 
 const NUM_PIXELS_PER_POINT = 1;
@@ -36,10 +35,17 @@ let maxFrequency;
 function init() {
     const sampleRateField = document.getElementById("sample-rate");
     if (!sampleRateField.checkValidity()) {
-        alert("The sample rate is not valid, must lie in interval 8000 to 96000!");
+        alert("Invalid sample rate, must lie in range 8000 to 96000!");
         return;
     }
     const sampleRate = Number.parseInt(sampleRateField.value);
+
+    const windowSizeField = document.getElementById("window-size");
+    if (!windowSizeField.checkValidity()) {
+        alert("Invalid window size, must lie in range 32 to 32768!");
+        return;
+    }
+    const windowSize = Number.parseInt(windowSizeField.value);
 
     audioCtx = new AudioContext({
         sampleRate: sampleRate
@@ -48,13 +54,18 @@ function init() {
     analyzer = audioCtx.createAnalyser();
     analyzer.minDecibels = -DECIBELS_RANGE;
     analyzer.maxDecibels = 0;
-    analyzer.fftSize = WINDOW_SIZE;
+    try {
+        analyzer.fftSize = windowSize;
+    } catch (e) {
+        alert("Invalid window size, must be a power of two!");
+        return;
+    }
     analyzer.connect(audioCtx.destination);
 
-    timeDomainData = new Uint8Array(WINDOW_SIZE);
+    timeDomainData = new Uint8Array(windowSize);
     frequencyDomainData = new Uint8Array(analyzer.frequencyBinCount);
     nyquistFrequency = audioCtx.sampleRate / 2;
-    windowSizeInSeconds = WINDOW_SIZE / audioCtx.sampleRate;
+    windowSizeInSeconds = windowSize / audioCtx.sampleRate;
     windowSizeInMs = windowSizeInSeconds * 1000;
 
     timeDomainCanvas = document.getElementById("time-domain-canvas");
@@ -196,13 +207,13 @@ async function changePlayerTime(timeString) {
 function changeFrequencyRange() {
     const minFrequencyField = document.getElementById("min-frequency");
     if (!minFrequencyField.checkValidity()) {
-        alert("The min frequency is not valid!");
+        alert("Invalid min frequency!");
         return;
     }
 
     const maxFrequencyField = document.getElementById("max-frequency");
     if (!maxFrequencyField.checkValidity()) {
-        alert("The max frequency is not valid!");
+        alert("Invalid max frequency!");
         return;
     }
 
