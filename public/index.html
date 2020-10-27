@@ -5,7 +5,14 @@
     <title>Audio Visualizer</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body onload="init()">
+<body>
+    <div>
+        <label for="sample-rate">Sample Rate:</label>
+        <input type="number" id="sample-rate" min="8000" max="96000" value="44100" size="6">
+        <label for="window-size">Window Size:</label>
+        <input type="number" id="window-size" min="32" max="32768" value="1024" size="6">
+        <input type="button" value="Init" onclick="init()">
+    </div>
     <div>
         <label for="audio-file">Select audio file:</label>
         <input type="file" id="audio-file" accept=".wav,.mp3,.ogg.,.au" onchange="loadFile(this.files[0])">
@@ -28,14 +35,14 @@
     <br>
 
     <div>
-        <label for="min-frequency">Min (Hz):</label>
-        <input type="number" id="min-frequency" size="10">
-        <label for="max-frequency">Max (Hz):</label>
-        <input type="number" id="max-frequency" size="10">
+        <label for="min-frequency">Min:</label>
+        <input type="number" id="min-frequency" size="6">
+        <label for="max-frequency">Max:</label>
+        <input type="number" id="max-frequency" size="6">
         <input type="button" value="Confirm" onclick="changeFrequencyRange()">
     </div>
     <div>
-        <label>Peak (Hz):</label>
+        <label>Peak:</label>
         <label id="peak-frequency"></label>
     </div>
     <canvas id="frequency-domain-canvas" width="400" height="200"></canvas>

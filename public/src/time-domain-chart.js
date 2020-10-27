@@ -54,6 +54,10 @@ class TimeDomainChart {
         });
     }
 
+    destroy() {
+        this.chart.destroy();
+    }
+
     update(data, minTime, maxTime) {
         this.chart.data.datasets = [{
             data: data,
