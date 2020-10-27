@@ -84,7 +84,7 @@ function init() {
     frequencyDomainChart = new FrequencyDomainChart(frequencyDomainCanvas, DECIBELS_RANGE, minFrequency, maxFrequency);
 
     const statusLabel = document.getElementById("status");
-    statusLabel.innerText = "No file selected";
+
 }
 
 function initFrequencyRange() {
