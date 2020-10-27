@@ -82,9 +82,6 @@ function init() {
         frequencyDomainChart.destroy();
     }
     frequencyDomainChart = new FrequencyDomainChart(frequencyDomainCanvas, DECIBELS_RANGE, minFrequency, maxFrequency);
-
-    const statusLabel = document.getElementById("status");
-
 }
 
 function initFrequencyRange() {
