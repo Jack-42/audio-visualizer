@@ -288,11 +288,11 @@ function updateTimeDomainChart() {
 }
 
 function updateFrequencyDomainChart() {
-    const numValuesPerPoint = this.getNumValuesPerPoint(frequencyDomainCanvas.width, frequencyDomainData.length);
+    const numValuesPerPoint = getNumValuesPerPoint(frequencyDomainCanvas.width, frequencyDomainData.length);
     const data = [];
 
     for (let bin = 0; bin < frequencyDomainData.length; bin += numValuesPerPoint) {
-        const frequency = this.binToFrequency(bin);
+        const frequency = binToFrequency(bin);
         const decibels = (frequencyDomainData[bin] - 255) / 255.0 * DECIBELS_RANGE;
         const point = {
             x: frequency,
