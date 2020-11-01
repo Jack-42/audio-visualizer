@@ -250,7 +250,7 @@ function getTimeString(time) {
 }
 
 function updatePeakFrequency() {
-    document.getElementById("peak-frequency").textContent = getPeakFrequency();
+    document.getElementById("peak-frequency").textContent = getPeakFrequency().toFixed(0);
 }
 
 function getPeakFrequency() {
