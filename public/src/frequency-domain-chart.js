@@ -26,9 +26,8 @@ class FrequencyDomainChart {
                         ticks: {
                             min: minFrequency,
                             max: maxFrequency,
-                            maxRotation: 0,  // prevent automatic rotation
                             autoSkip: true,
-                            autoSkipPadding: 20, // prevent overlapping labels
+                            autoSkipPadding: 10, // prevent overlapping labels
                             callback: function (value, index, values) {
                                 // transform value to string
                                 // necessary, because defaults to scientific notation in logarithmic scale
@@ -48,7 +47,7 @@ class FrequencyDomainChart {
                             max: 0,
                             maxRotation: 0,  // prevent automatic rotation
                             autoSkip: true,
-                            autoSkipPadding: 20 // prevent overlapping labels
+                            autoSkipPadding: 10 // prevent overlapping labels
                         }
                     }]
                 }
