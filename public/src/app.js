@@ -11,9 +11,12 @@ let audioPlayer;
 
 let timeDomainData;
 let frequencyDomainData;
+
 let nyquistFrequency;
 let windowSizeInSeconds;
 let windowSizeInMs;
+let frequencyResolution;
+
 let timer;
 
 let timeDomainCanvas;
@@ -48,12 +51,6 @@ async function init() {
         sampleRate: sampleRate
     });
 
-    windowSizeInSeconds = windowSize / audioCtx.sampleRate;
-    windowSizeInMs = windowSizeInSeconds * 1000;
-
-    const windowSizeLabel = document.getElementById("window-size-label");
-    windowSizeLabel.textContent = windowSizeInMs.toFixed(0);
-
     analyzer = audioCtx.createAnalyser();
     analyzer.minDecibels = -DECIBELS_RANGE;
     analyzer.maxDecibels = 0;
@@ -67,7 +64,17 @@ async function init() {
 
     timeDomainData = new Uint8Array(windowSize);
     frequencyDomainData = new Uint8Array(analyzer.frequencyBinCount);
+
     nyquistFrequency = audioCtx.sampleRate / 2;
+    windowSizeInSeconds = windowSize / audioCtx.sampleRate;
+    windowSizeInMs = windowSizeInSeconds * 1000;
+    frequencyResolution = nyquistFrequency / analyzer.frequencyBinCount;
+
+    const windowSizeLabel = document.getElementById("window-size-label");
+    windowSizeLabel.textContent = windowSizeInMs.toFixed(0);
+
+    const frequencyResolutionLabel = document.getElementById("frequency-resolution-label");
+    frequencyResolutionLabel.textContent = frequencyResolution.toFixed(0);
 
     timeDomainCanvas = document.getElementById("time-domain-canvas");
     frequencyDomainCanvas = document.getElementById("frequency-domain-canvas");
