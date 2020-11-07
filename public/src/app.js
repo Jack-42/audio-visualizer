@@ -48,6 +48,12 @@ async function init() {
         sampleRate: sampleRate
     });
 
+    windowSizeInSeconds = windowSize / audioCtx.sampleRate;
+    windowSizeInMs = windowSizeInSeconds * 1000;
+
+    const windowSizeLabel = document.getElementById("window-size-label");
+    windowSizeLabel.textContent = windowSizeInMs.toFixed(0);
+
     analyzer = audioCtx.createAnalyser();
     analyzer.minDecibels = -DECIBELS_RANGE;
     analyzer.maxDecibels = 0;
@@ -62,8 +68,6 @@ async function init() {
     timeDomainData = new Uint8Array(windowSize);
     frequencyDomainData = new Uint8Array(analyzer.frequencyBinCount);
     nyquistFrequency = audioCtx.sampleRate / 2;
-    windowSizeInSeconds = windowSize / audioCtx.sampleRate;
-    windowSizeInMs = windowSizeInSeconds * 1000;
 
     timeDomainCanvas = document.getElementById("time-domain-canvas");
     frequencyDomainCanvas = document.getElementById("frequency-domain-canvas");
