@@ -6,6 +6,8 @@ const NUM_PIXELS_PER_POINT = 1;
 
 let audioCtx;
 let analyzer;
+let audioBuffer;
+let audioPlayer;
 
 let timeDomainData;
 let frequencyDomainData;
@@ -13,15 +15,6 @@ let nyquistFrequency;
 let windowSizeInSeconds;
 let windowSizeInMs;
 let timer;
-
-let audioBuffer;
-let audioSource;
-
-let ready = false;
-let startTime;
-let currTime = 0;
-let playerTime = 0;
-let hasPlayerTimeChanged = false;
 
 let timeDomainCanvas;
 let frequencyDomainCanvas;
@@ -33,10 +26,6 @@ let minFrequency;
 let maxFrequency;
 
 async function init() {
-    if (audioSource) {
-        await stop();
-    }
-
     const sampleRateField = document.getElementById("sample-rate");
     if (!sampleRateField.checkValidity()) {
         alert("Invalid sample rate, must lie in range 8000 to 96000!");
@@ -50,6 +39,10 @@ async function init() {
         return;
     }
     const windowSize = Number.parseInt(windowSizeField.value);
+
+    if (audioPlayer) {
+        await audioPlayer.stop();
+    }
 
     audioCtx = new AudioContext({
         sampleRate: sampleRate
@@ -105,41 +98,44 @@ function initFrequencyRange() {
 
 function loadFile(file) {
     const statusLabel = document.getElementById("status");
-    ready = false;
     statusLabel.textContent = "Loading...";
     const reader = new FileReader();
     reader.onload = async () => {
+        if (audioPlayer) {
+            await audioPlayer.stop();
+        }
         const data = reader.result;
         audioBuffer = await audioCtx.decodeAudioData(data);
-        ready = true;
+        audioPlayer = new AudioPlayer(audioCtx, audioBuffer, analyzer);
+        audioPlayer.setCallbacks(onStart, onPause, onResume, onStop);
         statusLabel.textContent = "Ready";
     };
     reader.readAsArrayBuffer(file);
 }
 
 async function playOrPause() {
-    if (!ready) {
+    if (!audioPlayer) {
         return;
     }
-    if (!audioSource) {
-        // source has not been started yet or has just been stopped
-        // needs to be re-started
-        start();
-    } else {
-        // source is not stopped, i.e. it is either playing or paused
-        await pauseOrResume();
-    }
+    await audioPlayer.playOrPause();
 }
 
-function start() {
-    audioSource = audioCtx.createBufferSource();
-    audioSource.buffer = audioBuffer;
-    audioSource.connect(analyzer);
-    audioSource.onended = (event) => {
-        // this is triggered if playback has finished or if stop() is called
-        onStop();
+async function stop() {
+    if (!audioPlayer) {
+        return;
     }
+    await audioPlayer.stop();
+}
 
+async function changeSeekTime(timeString) {
+    if (!audioPlayer) {
+        return;
+    }
+    const seekTime = Number.parseInt(timeString);
+    await audioPlayer.changeSeekTime(seekTime);
+}
+
+function onStart() {
     timer = setInterval(() => {
         update();
     }, windowSizeInMs);
@@ -148,61 +144,23 @@ function start() {
     document.getElementById("time-slider").max = Math.floor(audioBuffer.duration);
     document.getElementById("time").textContent = "00:00";
     document.getElementById("duration").textContent = getTimeString(audioBuffer.duration);
-
-    startTime = audioCtx.currentTime;
-    audioSource.start(0, playerTime);
 }
 
-async function pauseOrResume() {
-    if (audioCtx.state === "running") {
-        await audioCtx.suspend();
-        document.getElementById("btn-play-pause").value = "Play";
-    } else if (audioCtx.state === "suspended") {
-        await audioCtx.resume();
-        document.getElementById("btn-play-pause").value = "Pause";
-    }
+function onPause() {
+    document.getElementById("btn-play-pause").value = "Play";
 }
 
-async function stop() {
-    if (!audioSource) {
-        return;
-    }
-    if (audioCtx.state === "suspended") {
-        // if ctx is suspended (paused), first need to resume
-        // might seem paradox, but is correct because not the source is suspended, but the ctx
-        await audioCtx.resume();
-    }
-    if (audioSource) {
-        audioSource.stop();
-    }
+function onResume() {
+    document.getElementById("btn-play-pause").value = "Pause";
 }
 
 function onStop() {
-    audioSource.disconnect();
-    audioSource = null;
-
     clearInterval(timer);
 
     document.getElementById("btn-play-pause").value = "Play";
     document.getElementById("time").textContent = "00:00";
     document.getElementById("time-slider").value = 0;
     document.getElementById("time-slider").max = 0;
-
-    if (hasPlayerTimeChanged) {
-        // re-start because track was stopped just for changing player time
-        // very hacky, did not find any better solution
-        hasPlayerTimeChanged = false;
-        start();
-    } else {
-        // if it has stopped usually, reset the player time
-        playerTime = 0;
-    }
-}
-
-async function changePlayerTime(timeString) {
-    playerTime = Number.parseInt(timeString);
-    hasPlayerTimeChanged = true;
-    await stop();
 }
 
 function changeFrequencyRange() {
@@ -237,7 +195,7 @@ function update() {
 }
 
 function updateTime() {
-    currTime = audioCtx.currentTime - startTime + playerTime;
+    const currTime = audioPlayer.getCurrentTime();
     document.getElementById("time-slider").value = Math.floor(currTime);
     document.getElementById("time").textContent = getTimeString(currTime);
     document.getElementById("duration").textContent = getTimeString(audioBuffer.duration) ;
@@ -269,9 +227,10 @@ function getPeakFrequency() {
 }
 
 function updateTimeDomainChart() {
+    const currTime = audioPlayer.getCurrentTime();
     const numValuesPerPoint = getNumValuesPerPoint(timeDomainCanvas.width, timeDomainData.length);
-    const data = [];
 
+    const data = [];
     for (let i = 0; i < timeDomainData.length; i += numValuesPerPoint) {
         const time = (i / audioCtx.sampleRate) + currTime; // offset by start time of the current window
         const amplitude = (timeDomainData[i] - 128) / 255.0;
@@ -289,8 +248,8 @@ function updateTimeDomainChart() {
 
 function updateFrequencyDomainChart() {
     const numValuesPerPoint = getNumValuesPerPoint(frequencyDomainCanvas.width, frequencyDomainData.length);
-    const data = [];
 
+    const data = [];
     for (let bin = 0; bin < frequencyDomainData.length; bin += numValuesPerPoint) {
         const frequency = binToFrequency(bin);
         const decibels = (frequencyDomainData[bin] - 255) / 255.0 * DECIBELS_RANGE;
