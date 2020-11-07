@@ -7,7 +7,7 @@
 </head>
 <body onload="init()">
     <div>
-        <label for="audio-file">Select audio file:</label>
+        <label for="audio-file">Audio File:</label>
         <input type="file" id="audio-file" accept=".wav,.mp3,.ogg.,.au" onchange="loadFile(this.files[0])">
     </div>
     <div>
@@ -31,6 +31,10 @@
     </div>
     <br>
 
+    <div>
+        <label>Window Size (ms):</label>
+        <label id="window-size-label"></label>
+    </div>
     <canvas id="time-domain-canvas" width="400" height="200"></canvas>
     <br>
 
@@ -40,6 +44,10 @@
         <label for="max-frequency">Max:</label>
         <input type="number" id="max-frequency" size="6">
         <input type="button" value="Confirm" onclick="changeFrequencyRange()">
+    </div>
+    <div>
+        <label>Frequency Resolution (Hz/bin):</label>
+        <label id="frequency-resolution-label"></label>
     </div>
     <div>
         <label>Peak:</label>
