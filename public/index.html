@@ -26,7 +26,7 @@
         <input type="button" value="Stop" onclick="stop()">
         <label id="time">00:00</label>
         <input type="range" id="time-slider" min="0" max="0" step="1" value="0"
-               onchange="changePlayerTime(this.value);">
+               onchange="changeSeekTime(this.value);">
         <label id="duration">--:--</label>
     </div>
     <br>
@@ -48,6 +48,7 @@
     <canvas id="frequency-domain-canvas" width="400" height="200"></canvas>
 
     <script src="src/app.js"></script>
+    <script src="src/audio-player.js"></script>
     <script src="src/time-domain-chart.js"></script>
     <script src="src/frequency-domain-chart.js"></script>
     <script src="vendor/Chart.js-2.9.4/dist/Chart.bundle.min.js"></script>
