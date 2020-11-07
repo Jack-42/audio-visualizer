@@ -11,9 +11,12 @@ let audioPlayer;
 
 let timeDomainData;
 let frequencyDomainData;
+
 let nyquistFrequency;
 let windowSizeInSeconds;
 let windowSizeInMs;
+let frequencyResolution;
+
 let timer;
 
 let timeDomainCanvas;
@@ -61,9 +64,17 @@ async function init() {
 
     timeDomainData = new Uint8Array(windowSize);
     frequencyDomainData = new Uint8Array(analyzer.frequencyBinCount);
+
     nyquistFrequency = audioCtx.sampleRate / 2;
     windowSizeInSeconds = windowSize / audioCtx.sampleRate;
     windowSizeInMs = windowSizeInSeconds * 1000;
+    frequencyResolution = nyquistFrequency / analyzer.frequencyBinCount;
+
+    const windowSizeLabel = document.getElementById("window-size-label");
+    windowSizeLabel.textContent = windowSizeInMs.toFixed(0);
+
+    const frequencyResolutionLabel = document.getElementById("frequency-resolution-label");
+    frequencyResolutionLabel.textContent = frequencyResolution.toFixed(0);
 
     timeDomainCanvas = document.getElementById("time-domain-canvas");
     frequencyDomainCanvas = document.getElementById("frequency-domain-canvas");
@@ -212,8 +223,8 @@ function updatePeakFrequency() {
 }
 
 function getPeakFrequency() {
-    const minBin = Math.max(0, frequencyToBin(minFrequency));
-    const maxBin = Math.min(frequencyToBin(maxFrequency), frequencyDomainData.length);
+    const minBin = Math.max(0, minFrequency / frequencyResolution);
+    const maxBin = Math.min(maxFrequency / frequencyResolution, frequencyDomainData.length);
 
     let peakPower = 0;
     let peakBin = 0;
@@ -223,7 +234,7 @@ function getPeakFrequency() {
             peakBin = bin;
         }
     }
-    return binToFrequency(peakBin);
+    return peakBin * frequencyResolution;
 }
 
 function updateTimeDomainChart() {
@@ -251,7 +262,7 @@ function updateFrequencyDomainChart() {
 
     const data = [];
     for (let bin = 0; bin < frequencyDomainData.length; bin += numValuesPerPoint) {
-        const frequency = binToFrequency(bin);
+        const frequency = bin * frequencyResolution;
         const decibels = (frequencyDomainData[bin] - 255) / 255.0 * DECIBELS_RANGE;
         const point = {
             x: frequency,
@@ -266,12 +277,4 @@ function updateFrequencyDomainChart() {
 function getNumValuesPerPoint(canvasWidth, numValues) {
     const maxNumPoints = Math.round(canvasWidth / NUM_PIXELS_PER_POINT);
     return Math.max(1, Math.round(numValues / maxNumPoints));
-}
-
-function binToFrequency(bin) {
-    return (bin / frequencyDomainData.length) * nyquistFrequency;
-}
-
-function frequencyToBin(frequency) {
-    return Math.round((frequency / nyquistFrequency) * frequencyDomainData.length);
 }
