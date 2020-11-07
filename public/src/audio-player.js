@@ -4,6 +4,9 @@ class AudioPlayer {
         this.buffer = buffer;
         this.source = null;
         this.destinationNode = destinationNode;
+        this.startTime = 0;
+        this.seekTime = 0;
+        this.restartingToChangeSeekTime = false;
     }
 
     setCallbacks(onStart, onPause, onResume, onStop) {
@@ -17,7 +20,7 @@ class AudioPlayer {
         return this.ctx.currentTime - this.startTime + this.seekTime;
     }
 
-    async togglePlayState() {
+    async playOrPause() {
         if (!this.source) {
             // player has not been started yet or has just been stopped
             // needs to be re-started
@@ -93,7 +96,7 @@ class AudioPlayer {
             // re-start because track has been stopped just for changing seek time
             // very hacky, did not find any better solution
             this.restartingToChangeSeekTime = false;
-            start();
+            this.start();
         } else {
             // track has been stopped usually
             this.seekTime = 0;
