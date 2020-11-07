@@ -26,6 +26,7 @@ class TimeDomainChart {
                         ticks: {
                             min: 0,
                             max: windowSizeInSeconds,
+                            maxRotation: 0,  // do not rotate if space gets too small
                             callback: function(value, index, values) {
                                 // transform value to string
                                 // only show min and max value because otherwise too much flickering, looks confusing
@@ -46,7 +47,8 @@ class TimeDomainChart {
                         },
                         ticks: {
                             min: -1.0,
-                            max: 1.0
+                            max: 1.0,
+                            maxRotation: 0  // do not rotate if space gets too small
                         }
                     }]
                 }
