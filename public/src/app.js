@@ -43,10 +43,6 @@ async function init() {
     }
     const windowSize = Number.parseInt(windowSizeField.value);
 
-    if (audioPlayer) {
-        await audioPlayer.stop();
-    }
-
     audioCtx = new AudioContext({
         sampleRate: sampleRate
     });
@@ -61,6 +57,14 @@ async function init() {
         return;
     }
     analyzer.connect(audioCtx.destination);
+
+    // need to re-create player because of new ctx and analyzer
+    // first stop old one
+    if (audioPlayer) {
+        await audioPlayer.stop();
+    }
+    audioPlayer = new AudioPlayer(audioCtx, audioBuffer, analyzer);
+    audioPlayer.setCallbacks(onStart, onPause, onResume, onStop);
 
     timeDomainData = new Uint8Array(windowSize);
     frequencyDomainData = new Uint8Array(analyzer.frequencyBinCount);
