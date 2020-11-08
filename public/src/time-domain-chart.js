@@ -1,20 +1,19 @@
 class TimeDomainChart {
     constructor(canvas, windowSizeInSeconds) {
+        // TODO: pass context instead
         this.canvas = canvas;
-
-        const shouldResize = this.canvas.width + 50 > window.innerWidth;
         const ctx = this.canvas.getContext("2d");
 
         this.chart = new Chart(ctx, {
-            type: 'line',
+            type: "line",
             options: {
                 animation: {
                     duration: 0 // disable animation
                 },
                 legend: {
-                    display: false // disable legend (database label)
+                    display: false
                 },
-                responsive: shouldResize,
+                responsive: false,
                 scales: {
                     xAxes: [{
                         type: "linear",

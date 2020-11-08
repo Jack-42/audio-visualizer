@@ -1,20 +1,18 @@
 class FrequencyDomainChart {
     constructor(canvas, decibelsRange, minFrequency, maxFrequency) {
         this.canvas = canvas;
-
-        const shouldResize = this.canvas.width + 50 > window.innerWidth;
         const ctx = this.canvas.getContext("2d");
 
         this.chart = new Chart(ctx, {
-            type: 'line',
+            type: "bar",
             options: {
                 animation: {
                     duration: 0 // disable animation
                 },
                 legend: {
-                    display: false // disable legend (database label)
+                    display: false
                 },
-                responsive: shouldResize,
+                responsive: false,
                 scales: {
                     xAxes: [{
                         type: "logarithmic",

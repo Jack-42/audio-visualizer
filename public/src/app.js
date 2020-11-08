@@ -21,9 +21,11 @@ let timer;
 
 let timeDomainCanvas;
 let frequencyDomainCanvas;
+let peakLevelCanvas;
 
 let timeDomainChart;
 let frequencyDomainChart;
+let peakLevelChart;
 
 let minFrequency;
 let maxFrequency;
@@ -82,6 +84,7 @@ async function init() {
 
     timeDomainCanvas = document.getElementById("time-domain-canvas");
     frequencyDomainCanvas = document.getElementById("frequency-domain-canvas");
+    peakLevelCanvas = document.getElementById("peak-level-canvas");
 
     initFrequencyRange();
 
@@ -94,6 +97,11 @@ async function init() {
         frequencyDomainChart.destroy();
     }
     frequencyDomainChart = new FrequencyDomainChart(frequencyDomainCanvas, DECIBELS_RANGE, minFrequency, maxFrequency);
+
+    if (peakLevelChart) {
+        peakLevelChart.destroy();
+    }
+    peakLevelChart = new PeakLevelChart(peakLevelCanvas, DECIBELS_RANGE);
 }
 
 function initFrequencyRange() {
@@ -224,7 +232,9 @@ function getTimeString(time) {
 }
 
 function updatePeakLevel() {
-    document.getElementById("peak-level").textContent = getPeakLevel().toFixed(2);
+    const peakLevel = getPeakLevel();
+    document.getElementById("peak-level").textContent = peakLevel.toFixed(2);
+    peakLevelChart.update(peakLevel);
 }
 
 function getPeakLevel() {
