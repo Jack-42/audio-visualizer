@@ -211,6 +211,7 @@ function changeFrequencyRange() {
     maxFrequency = Number.parseInt(maxFrequencyField.value);
 
     frequencyDomainChart.setFrequencyRange(minFrequency, maxFrequency);
+    peakFrequencyChart.setFrequencyRange(minFrequency, maxFrequency);
 }
 
 function update() {

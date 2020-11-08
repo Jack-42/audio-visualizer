@@ -51,4 +51,10 @@ class PeakFrequencyChart {
 
         this.chart.update();
     }
+
+    setFrequencyRange(minFrequency, maxFrequency) {
+        this.chart.options.scales.yAxes[0].ticks.min = minFrequency;
+        this.chart.options.scales.yAxes[0].ticks.max = maxFrequency;
+        this.chart.update();
+    }
 }
