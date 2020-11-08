@@ -1,5 +1,5 @@
 class PeakLevelChart {
-    constructor(canvas, decibelsRange) {
+    constructor(canvas, minDecibels) {
         this.canvas = canvas;
         const ctx = this.canvas.getContext("2d");
 
@@ -22,7 +22,7 @@ class PeakLevelChart {
                             labelString: "Peak Level (dB)"
                         },
                         ticks: {
-                            min: -decibelsRange,
+                            min: minDecibels,
                             max: 0,
                             maxRotation: 0,  // prevent automatic rotation
                             autoSkip: true,

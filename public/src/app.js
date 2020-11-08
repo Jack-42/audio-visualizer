@@ -101,7 +101,7 @@ async function init() {
     if (peakLevelChart) {
         peakLevelChart.destroy();
     }
-    peakLevelChart = new PeakLevelChart(peakLevelCanvas, DECIBELS_RANGE);
+    peakLevelChart = new PeakLevelChart(peakLevelCanvas, -40.0);
 }
 
 function initFrequencyRange() {
