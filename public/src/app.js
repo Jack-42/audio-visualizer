@@ -224,14 +224,15 @@ function getTimeString(time) {
 }
 
 function updatePeakLevel() {
-    document.getElementById("peak-level").textContent = getPeakLevel().toFixed(1);
+    document.getElementById("peak-level").textContent = getPeakLevel().toFixed(2);
 }
 
 function getPeakLevel() {
     let peakAmplitude = 0;
     for (let i = 0; i < timeDomainData.length; i++) {
-        if (timeDomainData[i] > peakAmplitude) {
-            peakAmplitude = timeDomainData[i];
+        const amplitude = Math.abs((timeDomainData[i] - 128) / 128);
+        if (amplitude > peakAmplitude) {
+            peakAmplitude = amplitude;
         }
     }
     // TODO: convert to decibels
