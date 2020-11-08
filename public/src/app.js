@@ -247,8 +247,8 @@ function updatePeakFrequency() {
 }
 
 function getPeakFrequency() {
-    const minBin = Math.max(0, minFrequency / frequencyResolution);
-    const maxBin = Math.min(maxFrequency / frequencyResolution, frequencyDomainData.length);
+    const minBin = Math.max(0, Math.floor(minFrequency / frequencyResolution));
+    const maxBin = Math.min(Math.floor(maxFrequency / frequencyResolution), frequencyDomainData.length);
 
     let peakPower = 0;
     let peakBin = 0;
@@ -287,7 +287,7 @@ function updateFrequencyDomainChart() {
     const data = [];
     for (let bin = 0; bin < frequencyDomainData.length; bin += numValuesPerPoint) {
         const frequency = bin * frequencyResolution;
-        const decibels = (frequencyDomainData[bin] - 255) / 255.0 * DECIBELS_RANGE;
+        const decibels = (frequencyDomainData[bin] - 255) / 255 * DECIBELS_RANGE;
         const point = {
             x: frequency,
             y: decibels
