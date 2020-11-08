@@ -204,6 +204,7 @@ function update() {
     updateTime();
     analyzer.getByteTimeDomainData(timeDomainData);
     analyzer.getByteFrequencyData(frequencyDomainData);
+    updatePeakLevel();
     updatePeakFrequency();
     updateTimeDomainChart();
     updateFrequencyDomainChart();
@@ -220,6 +221,21 @@ function getTimeString(time) {
     const date = new Date(0);
     date.setSeconds(time);
     return date.toISOString().substr(14, 5);
+}
+
+function updatePeakLevel() {
+    document.getElementById("peak-level").textContent = getPeakLevel().toFixed(1);
+}
+
+function getPeakLevel() {
+    let peakAmplitude = 0;
+    for (let i = 0; i < timeDomainData.length; i++) {
+        if (timeDomainData[i] > peakAmplitude) {
+            peakAmplitude = timeDomainData[i];
+        }
+    }
+    // TODO: convert to decibels
+    return peakAmplitude;
 }
 
 function updatePeakFrequency() {
