@@ -230,13 +230,16 @@ function updatePeakLevel() {
 function getPeakLevel() {
     let peakAmplitude = 0;
     for (let i = 0; i < timeDomainData.length; i++) {
-        const amplitude = Math.abs((timeDomainData[i] - 128) / 128);
+        const amplitude = Math.abs((timeDomainData[i] - 128) / 127);
         if (amplitude > peakAmplitude) {
             peakAmplitude = amplitude;
         }
     }
-    // TODO: convert to decibels
-    return peakAmplitude;
+    return linearToDecibels(peakAmplitude);
+}
+
+function linearToDecibels(linear) {
+    return 20 * Math.log10(linear);
 }
 
 function updatePeakFrequency() {
