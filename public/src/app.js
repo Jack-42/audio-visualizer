@@ -268,7 +268,7 @@ function updateTimeDomainChart() {
     const data = [];
     for (let i = 0; i < timeDomainData.length; i += numValuesPerPoint) {
         const time = (i / audioCtx.sampleRate) + currTime; // offset by start time of the current window
-        const amplitude = (timeDomainData[i] - 128) / 255.0;
+        const amplitude = (timeDomainData[i] - 128) / 127;
         const point = {
             x: time,
             y: amplitude
