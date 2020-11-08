@@ -4,7 +4,7 @@ class FrequencyDomainChart {
         const ctx = this.canvas.getContext("2d");
 
         this.chart = new Chart(ctx, {
-            type: "bar",
+            type: "line",
             options: {
                 animation: {
                     duration: 0 // disable animation
