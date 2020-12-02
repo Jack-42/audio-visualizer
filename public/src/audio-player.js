@@ -69,23 +69,17 @@ class AudioPlayer {
         };
         this.startTime = this.ctx.currentTime;
         this.source.start(0, this.seekTime);
-        if (this.onStart) {
-            this.onStart();
-        }
+        this.onStart();
     }
 
     async pause() {
         await this.ctx.suspend();
-        if (this.onPause) {
-            this.onPause();
-        }
+        this.onPause();
     }
 
     async resume() {
         await this.ctx.resume();
-        if (this.onResume) {
-            this.onResume();
-        }
+        this.onResume();
     }
 
     handleStop() {
@@ -93,11 +87,13 @@ class AudioPlayer {
         this.source = null;
 
         if (this.restartingToChangeSeekTime) {
+            console.log("stop for restart");
             // re-start because track has been stopped just for changing seek time
             // very hacky, did not find any better solution
             this.restartingToChangeSeekTime = false;
             this.start();
         } else {
+            console.log("real stop");
             // track has been stopped usually
             this.seekTime = 0;
             this.onStop();
