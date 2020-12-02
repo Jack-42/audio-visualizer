@@ -167,6 +167,9 @@ async function changeSeekTime(timeString) {
 }
 
 function onStart() {
+    if (timer) {
+        clearInterval(timer);
+    }
     timer = setInterval(() => {
         update();
     }, windowSizeInMs);
@@ -186,6 +189,7 @@ function onResume() {
 }
 
 function onStop() {
+    console.log("onStop");
     clearInterval(timer);
 
     document.getElementById("btn-play-pause").value = "Play";
