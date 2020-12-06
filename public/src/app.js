@@ -235,7 +235,7 @@ function updateTime() {
     const currTime = audioPlayer.getCurrentTime();
     document.getElementById("time-slider").value = Math.floor(currTime);
     document.getElementById("time").textContent = getTimeString(currTime);
-    document.getElementById("duration").textContent = getTimeString(audioBuffer.duration) ;
+    document.getElementById("duration").textContent = getTimeString(audioBuffer.duration);
 }
 
 function getTimeString(time) {
