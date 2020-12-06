@@ -87,13 +87,11 @@ class AudioPlayer {
         this.source = null;
 
         if (this.restartingToChangeSeekTime) {
-            console.log("stop for restart");
             // re-start because track has been stopped just for changing seek time
             // very hacky, did not find any better solution
             this.restartingToChangeSeekTime = false;
             this.start();
         } else {
-            console.log("real stop");
             // track has been stopped usually
             this.seekTime = 0;
             this.onStop();
