@@ -189,7 +189,6 @@ function onResume() {
 }
 
 function onStop() {
-    console.log("onStop");
     clearInterval(timer);
 
     document.getElementById("btn-play-pause").value = "Play";
